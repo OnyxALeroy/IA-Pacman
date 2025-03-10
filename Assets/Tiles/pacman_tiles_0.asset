@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
   m_Name: pacman_tiles_0
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: -6651416068759359572, guid: 2b25aa93a9704604fa27f49d0a2c3a83, type: 3}
+  m_Sprite: {fileID: 2868539044483428322, guid: 83dd07c244d34b44e983242fa3991f75, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

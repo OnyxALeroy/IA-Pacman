@@ -4,7 +4,7 @@ public class GameManager : MonoBehaviour
 {
     public Ghost[] ghosts;
 
-    public Pacman pacman
+    public Pacman pacman;
 
     public Transform pellets;
 
@@ -13,10 +13,10 @@ public class GameManager : MonoBehaviour
 
     private void start()
     { 
-        NewGame(;)
+        NewGame();
     }
 
-    privatee void NewGame()
+    private void NewGame()
     {
         SetScore(0);
         SetLives(3);
