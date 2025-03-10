@@ -16,6 +16,14 @@ public class GameManager : MonoBehaviour
         NewGame();
     }
 
+    private void Update()
+    {
+        if(this.lives <= 0 && Input.anyKeyDown)
+        {
+            NewRound();
+        }
+    }
+
     private void NewGame()
     {
         SetScore(0);
@@ -36,26 +44,26 @@ public class GameManager : MonoBehaviour
     {
         for(int i = 0; i < ghosts.Length; i++)
         {
-            this.ghosts[i].gameObject.setActive(true);
+            this.ghosts[i].gameObject.SetActive(true);
         }
-        this.pacman.gameObject.setActive(true);
+        this.pacman.gameObject.SetActive(true);
     }
 
-    private SetScore(int score)
+    private void SetScore(int score)
     {
         this.score = score;
     }
 
     private void GameOver()
     {
-                for(int i = 0; i < ghosts.Length; i++)
+        for(int i = 0; i < ghosts.Length; i++)
         {
-            this.ghosts[i].gameObject.setActive(false);
+            this.ghosts[i].gameObject.SetActive(false);
         }
-        this.pacman.gameObject.setActive(false);
+        this.pacman.gameObject.SetActive(false);
     }
 
-    private SetLives(int lives)
+    private void SetLives(int lives)
     {
         this.lives = lives;
     }
@@ -67,13 +75,13 @@ public class GameManager : MonoBehaviour
 
     public void PacmanEaten()
     {
-        this.pacman.gameObject.setActive(false);
+        this.pacman.gameObject.SetActive(false);
         SetLives(lives - 1);
         if(lives <= 0)
         {
             GameOver();
         } else {
-            Invoke(nameof(ResetState()), 3);
+            Invoke(nameof(ResetState), 3);
         }
     }
 }
