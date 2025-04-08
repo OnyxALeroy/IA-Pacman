@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class Pacman : MonoBehaviour
 {
+    [SerializeField] float tileSize = 1.0f;
+
     public Movement movement { get; private set; }
 
     private void Awake()
@@ -30,5 +32,18 @@ public class Pacman : MonoBehaviour
 
         float angle = Mathf.Atan2(-this.movement.direction.x, this.movement.direction.y);
         this.transform.rotation = Quaternion.AngleAxis(angle * Mathf.Rad2Deg, Vector3.forward);
+    }
+
+    // --------------------------------------------------------------------------------------------
+
+    public Vector2 GetPositionInGrid()
+    {
+        Vector2 worldPosition = this.transform.position;
+        Vector2 gridPosition = new Vector2(
+            Mathf.FloorToInt(worldPosition.x / tileSize),
+            Mathf.FloorToInt(worldPosition.y / tileSize)
+        );
+
+        return gridPosition;
     }
 }
