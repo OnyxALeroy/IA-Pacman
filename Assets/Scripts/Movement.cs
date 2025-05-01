@@ -32,7 +32,7 @@ public class Movement : MonoBehaviour
         this.direction = this.initialDirection;
         this.nextDirection = Vector2.zero;
         this.transform.position = this.startPosition;
-        this.rb.isKinematic = false;
+        this.rb.bodyType = RigidbodyType2D.Dynamic;
         this.enabled = true;
     }
 
@@ -66,7 +66,7 @@ public class Movement : MonoBehaviour
 
     public bool Occupied(Vector2 direction)
     {
-        RaycastHit2D hit = Physics2D.BoxCast(this.transform.position, Vector2.one * 0.75f, 0.0f, direction, 1.0f, this.obstacleLayer);
+        RaycastHit2D hit = Physics2D.BoxCast(transform.position, Vector2.one * 0.75f, 0f, direction, 0.5f, obstacleLayer);
         return hit.collider != null;
     }
 }
