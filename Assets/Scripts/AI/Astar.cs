@@ -203,7 +203,7 @@ public class Astar : MonoBehaviour
     // --------------------------------------------------------------------------------------------
 
     public (int, int) GetPacmanPositionInGrid(){
-        return pacman.GetPositionInGrid(mapSize);
+        return (0, 0); // FIXME: this is a placeholder, replace with the actual implementation
     }
 
     // --------------------------------------------------------------------------------------------

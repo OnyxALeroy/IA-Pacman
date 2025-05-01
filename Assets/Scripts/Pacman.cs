@@ -39,15 +39,4 @@ public class Pacman : MonoBehaviour
         this.movement.ResetState();
         this.gameObject.SetActive(true);
     }
-
-    // --------------------------------------------------------------------------------------------
-
-    public (int, int) GetPositionInGrid(Vector2Int mapSize)
-    {
-        Vector2 worldPosition = this.transform.position;
-        return (
-            (int)Mathf.FloorToInt(worldPosition.x / tileSize) + Mathf.FloorToInt((mapSize.x + 1)/2),
-            (int)Mathf.FloorToInt(worldPosition.y / tileSize) + 14 //+ Mathf.FloorToInt(mapSize.y/2)
-        );
-    }
 }

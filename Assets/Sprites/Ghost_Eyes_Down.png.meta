@@ -159,7 +159,9 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Ghost_Eyes_Down_0: 390626384081808141
+      Ghost_Eyes_Down_1: -1030493007822584013
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
