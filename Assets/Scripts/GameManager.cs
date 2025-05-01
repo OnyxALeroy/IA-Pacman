@@ -47,9 +47,9 @@ public class GameManager : MonoBehaviour
         ResetGhostMultiplier();
         for(int i = 0; i < ghosts.Length; i++)
         {
-            this.ghosts[i].gameObject.SetActive(true);
+            this.ghosts[i].ResetState();
         }
-        this.pacman.gameObject.SetActive(true);
+        this.pacman.ResetState();
     }
 
     private void SetScore(int score)
