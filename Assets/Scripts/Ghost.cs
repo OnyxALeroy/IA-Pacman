@@ -8,7 +8,9 @@ public class Ghost : MonoBehaviour
     public GhostFeared feared { get; private set; }
     public GhostScatter scatter { get; private set; }
     [SerializeField] public GhostBehaviour initialBehaviour;
-    
+
+    [SerializeField] private GameManager gameManager; // Reference to the GameManager
+
     public Transform target;
 
     public int points = 200;
@@ -58,11 +60,11 @@ public class Ghost : MonoBehaviour
         {
             if (this.feared.enabled)
             {
-                Object.FindFirstObjectByType<GameManager>().GhostEaten(this);
+                this.gameManager.GhostEaten(this);
             }
             else
             {
-                Object.FindFirstObjectByType<GameManager>().PacmanEaten();
+                this.gameManager.PacmanEaten();
             }
         }
     }

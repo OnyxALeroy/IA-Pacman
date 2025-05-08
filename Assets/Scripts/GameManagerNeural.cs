@@ -1,23 +1,18 @@
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManagerNeural : GameManager
 {
-    public Ghost[] ghosts;
-
-    public Pacman pacman;
-
-    public Transform pellets;
-
-    protected int ghostMultiplier { get; set; } = 1;
-
-    protected void Start()
-    { 
-        NewGame();
+    private new void Start()
+    {
+        base.Start(); // Call the base class's Start method
     }
 
-    protected void Update()
+    private new void Update()
     {
-        if (pacman.GetLives() <= 0 && Input.anyKeyDown)
+        base.Update(); // Call the base class's Update method
+
+        // Additional behavior for neural network-based Pacman
+        if (this.pacman.GetLives() <= 0 && Input.anyKeyDown)
         {
             NewRound();
         }
@@ -25,8 +20,8 @@ public class GameManager : MonoBehaviour
 
     private void NewGame()
     {
-        pacman.SetScore(0);
-        pacman.SetLives(3);
+        this.pacman.SetScore(0);
+        this.pacman.SetLives(1);
         NewRound();
     }
 
@@ -38,7 +33,7 @@ public class GameManager : MonoBehaviour
         }
         ResetState();
     }
-    
+
     private void ResetState()
     {
         ResetGhostMultiplier();
@@ -58,17 +53,17 @@ public class GameManager : MonoBehaviour
         this.pacman.gameObject.SetActive(false);
     }
 
-    public void GhostEaten(Ghost ghost)
+    public new void GhostEaten(Ghost ghost)
     {
-        pacman.SetScore(pacman.GetScore() + (ghost.GetPoints() * ghostMultiplier));
+        this.pacman.SetScore(this.pacman.GetScore() + (ghost.GetPoints() * ghostMultiplier));
         this.ghostMultiplier++;
     }
 
-    public void PacmanEaten()
+    public new void PacmanEaten()
     {
         this.pacman.gameObject.SetActive(false);
-        pacman.SetLives(pacman.GetLives() - 1);
-        if (pacman.GetLives() <= 0)
+        this.pacman.SetLives(this.pacman.GetLives() - 1);
+        if (this.pacman.GetLives() <= 0)
         {
             GameOver();
         }
@@ -78,10 +73,10 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void PelletEaten(Pellet pellet)
+    public new void PelletEaten(Pellet pellet)
     {
         pellet.gameObject.SetActive(false);
-        pacman.SetScore(pacman.GetScore() + pellet.points);
+        this.pacman.SetScore(this.pacman.GetScore() + pellet.points);
 
         if (!HasRemainingPellets())
         {
@@ -90,29 +85,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void PowerPelletEaten(PowerPellet powerPellet)
+    public new void PowerPelletEaten(PowerPellet powerPellet)
     {
-        // TODO : Ghosts have to flee
+        // TODO: Ghosts have to flee
 
         Invoke(nameof(ResetGhostMultiplier), powerPellet.duration);
         CancelInvoke();
-        PelletEaten(powerPellet);        
-    }
-
-    protected bool HasRemainingPellets()
-    {
-        foreach (Transform pellet in this.pellets)
-        {
-            if (pellet.gameObject.activeSelf)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected void ResetGhostMultiplier()
-    {
-        this.ghostMultiplier = 1;
+        PelletEaten(powerPellet);
     }
 }

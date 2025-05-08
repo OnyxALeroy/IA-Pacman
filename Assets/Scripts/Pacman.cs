@@ -4,26 +4,29 @@ public class Pacman : MonoBehaviour
 {
     public Movement movement { get; private set; }
 
-    private void Awake()
+    protected int lives;
+    protected int score;
+
+    protected void Awake()
     {
         this.movement = GetComponent<Movement>();
     }
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
         {
             this.movement.SetDirection(Vector2.up);
         }
-        else if(Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
         {
             this.movement.SetDirection(Vector2.down);
         }
-        else if(Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
         {
             this.movement.SetDirection(Vector2.left);
         }
-        else if(Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
         {
             this.movement.SetDirection(Vector2.right);
         }
@@ -36,5 +39,25 @@ public class Pacman : MonoBehaviour
     {
         this.movement.ResetState();
         this.gameObject.SetActive(true);
+    }
+
+
+    public int GetLives()
+    {
+        return this.lives;
+    }
+
+    public void SetLives(int lives)
+    {
+        this.lives = lives; 
+    }
+    public int GetScore()
+    {
+        return this.score;
+    }
+
+    public void SetScore(int score)
+    {
+        this.score = score; 
     }
 }
