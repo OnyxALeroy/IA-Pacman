@@ -1496,6 +1496,86 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1203097366}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &999078550
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 999078553}
+  - component: {fileID: 999078552}
+  - component: {fileID: 999078555}
+  - component: {fileID: 999078554}
+  m_Layer: 0
+  m_Name: Astar
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &999078552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 999078550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bed6baab4de909b4199d85569d09aa94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tilemap: {fileID: 1203097368}
+  pacmanCoord: {fileID: 999078555}
+  pacman: {fileID: 1535157184}
+  canUserInteract: 1
+  debugMode: 1
+--- !u!4 &999078553
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 999078550}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &999078554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 999078550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625b9b57068105a479f1d0a3c225a39b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pacman: {fileID: 1535157184}
+  moveSpeed: 3
+  nextWaypointDistance: 0.1
+--- !u!114 &999078555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 999078550}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e5f96fd11348c243a419868d1eea9f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pacman: {fileID: 1535157188}
+  tilemap: {fileID: 1203097368}
 --- !u!1 &1158661168
 GameObject:
   m_ObjectHideFlags: 0
@@ -6282,3 +6362,4 @@ SceneRoots:
   - {fileID: 1319163231}
   - {fileID: 257932224}
   - {fileID: 1158661169}
+  - {fileID: 999078553}

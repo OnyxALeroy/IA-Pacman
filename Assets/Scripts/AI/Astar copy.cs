@@ -1,3 +1,4 @@
+/*
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,19 +8,18 @@ using UnityEngine.Tilemaps;
 public class Astar : MonoBehaviour
 {
     [SerializeField] Tilemap tilemap;
+    [SerializeField] Vector2Int mapSize;
     [SerializeField] PacmanCoord pacmanCoord;
     [SerializeField] Pacman pacman;
-    [SerializeField] bool canUserInteract = false;
     [SerializeField] bool debugMode = false;
 
     // A* components
-    public (int, int) currentDestination;
+    public (int, int) currentDestination = (-1, -1);
     public Queue<(int, int)> currentPath = new Queue<(int, int)>();
     private bool hasDestinationChanged = false;
     
     // Grid-relative attributes
     private bool[,] mapMatrix;
-    private Vector2Int mapSize;
     private Graph<(int, int)> mapGraph;
 
     // Debug Components (for drawing the paths)
@@ -55,33 +55,40 @@ public class Astar : MonoBehaviour
     void Start(){
         if (debugMode){ InitializeLineRenderers(); }
 
-        // FIXME: call the method to get this
-        mapMatrix = null;
-        mapSize = new Vector2Int(mapMatrix.GetLength(0), mapMatrix.GetLength(1));
+        mapMatrix = new bool[mapSize.x, mapSize.y];
+
+        // Determine the bottom-left corner of the area we want to examine
+        BoundsInt bounds = tilemap.cellBounds;
+        int startX = bounds.xMin;
+        int startY = bounds.yMin;
+
+        // Fill mapMatrix by checking if tiles exist
+        for (int x = 0; x < mapSize.x; x++)
+        {
+            for (int y = 0; y < mapSize.y; y++)
+            {
+                Vector3Int cellPosition = new Vector3Int(startX + x, startY + y, 0);
+                bool hasTile = tilemap.HasTile(cellPosition);
+                mapMatrix[x, y] = hasTile;
+            }
+        }
+
         if (debugMode) { PrintMatrixInConsole(); }
 
-        mapGraph = GraphBuilder.BuildGraph(mapMatrix, debugMode);
-        currentDestination = GetPacmanPositionInGrid();
-        hasDestinationChanged = true;
-        Debug.Log($"Default destination set: {currentDestination}");
+        mapGraph = GraphBuilder.BuildGraph(mapMatrix);
     }
 
     // --------------------------------------------------------------------------------------------
 
-    public void setNewDestination(int targetX, int targetY){
-        currentDestination = (targetX, targetY);
-        hasDestinationChanged = true;
-    }
-
     void Update(){
-        if (Input.GetMouseButtonDown(0) && canUserInteract)
+        if (Input.GetMouseButtonDown(0))
         {
             Vector3 world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector3Int cell = tilemap.WorldToCell(world);
             Debug.Log("Clicked tilemap cell: " + cell);
 
             // Convert the clicked cell to our grid coordinates
-            (int x, int y) = (cell.x, -cell.y);
+            (int x, int y) = ConvertTilemapToGridCoordinates(cell.x, cell.y);
             
             // Check if this is a valid tile and set it as destination
             if (x >= 0 && x < mapSize.x && y >= 0 && y < mapSize.y && mapMatrix[x, y])
@@ -90,53 +97,46 @@ public class Astar : MonoBehaviour
                 hasDestinationChanged = true;
                 Debug.Log($"New destination set: {currentDestination}");
             }
-            else
-            {
-                Debug.LogWarning($"Invalid destination at grid position ({x},{y})");
-                Debug.LogWarning($"Accounted map size ({mapSize.x},{mapSize.y})");
-                Debug.LogWarning($"HasTile? = {mapMatrix[x, y]}");
-            }
+        }
+
+        // Set a random destination if none exists
+        if (currentDestination == (-1, -1)){
+            currentDestination = GetRandomFreeLocation();
+            hasDestinationChanged = true;
         }
 
         // Recalculate path if destination has changed
         if (hasDestinationChanged){
-            if (aStarLineRenderer != null) { aStarLineRenderer.positionCount = 0; }
-
             currentPath = FindShortestPath();
             hasDestinationChanged = false;
 
             if (debugMode){
-                Debug.Log($"Path calculation complete. Path count: {currentPath.Count}");
-                string pathPoints = "Path points: ";
-                foreach (var point in currentPath)
-                {
-                    pathPoints += $"({point.Item1},{point.Item2}) ";
-                }
-                Debug.Log(pathPoints);
-
                 Vector3 startingPosition = pacman.transform.position;
                 Vector3 endingPosition = GridToWorldPosition(currentDestination.Item1, currentDestination.Item2);
 
+                Debug.Log($"Starting position in grid = {GetPacmanPositionInGrid()}");
+                Debug.Log($"Ending position in grid = {currentDestination}");
                 DrawStraightLine(startingPosition, endingPosition);
-
-                if (currentPath.Count > 0)
-                {
-                    Debug.Log($"Drawing path with {currentPath.Count} points");
-                    DrawAStarPath(new Queue<(int, int)>(currentPath));
-                }
-                else
-                {
-                    Debug.LogWarning("No path found to draw");
-                }
+                DrawAStarPath(new Queue<(int, int)>(currentPath));
             }
         }
     }
 
     // --------------------------------------------------------------------------------------------
 
+    // Convert between coordinate systems
+    private (int, int) ConvertTilemapToGridCoordinates(int tilemapX, int tilemapY)
+    {
+        // Implement the correct conversion logic based on your tilemap setup
+        // This is a placeholder - adjust based on your actual coordinates relationship
+        return (tilemapX, -tilemapY);
+    }
+
     public Vector3 GridToWorldPosition(int gridX, int gridY)
     {
+        // Convert grid coordinates back to tilemap coordinates
         Vector3Int tilePosition = new Vector3Int(gridX, -gridY, 0);
+        // Then convert to world position (adding half cell size to get center)
         return tilemap.CellToWorld(tilePosition) + tilemap.layoutGrid.cellSize / 2f;
     }
 
@@ -147,10 +147,8 @@ public class Astar : MonoBehaviour
     }
 
     private (int, int) GetMinimizingNode(List<(int, int)> nodes, Dictionary<(int, int), int> costsFromStart, (int, int) goal){
-        if (nodes.Count == 0) { Debug.LogError("Cannot find minimizing node from empty list"); return (-1, -1); }
-
         (int, int) minimizingNode = nodes[0]; // Default to first node
-        int minimalCost = costsFromStart[minimizingNode] + CalculateHeuristic(minimizingNode, goal);
+        int minimalCost = int.MaxValue;
 
         foreach((int, int) node in nodes){
             int cost = costsFromStart[node] + CalculateHeuristic(node, goal);
@@ -184,9 +182,9 @@ public class Astar : MonoBehaviour
 
     public Queue<(int, int)> FindShortestPath(){
         (int, int) initialPosition = GetPacmanPositionInGrid();
-
+        
         // Check if destination is valid
-        if (!mapMatrix[currentDestination.Item1, currentDestination.Item2])
+        if (mapMatrix[currentDestination.Item1, currentDestination.Item2])
         {
             Debug.LogError($"Destination {currentDestination} is not a valid tile!");
             return new Queue<(int, int)>();
@@ -257,10 +255,32 @@ public class Astar : MonoBehaviour
 
     public (int, int) GetPacmanPositionInGrid(){
         Vector3Int coords = pacmanCoord.GetPacmanCoords();
-        return (coords.x, -coords.y);
+        return ConvertTilemapToGridCoordinates(coords.x, coords.y);
     }
 
     // --------------------------------------------------------------------------------------------
+
+    private (int, int) GetRandomFreeLocation(){
+        List<(int, int)> freeCells = new List<(int, int)>();
+        for (int x = 0; x < mapMatrix.GetLength(0); x++)
+        {
+            for (int y = 0; y < mapMatrix.GetLength(1); y++)
+            {
+                if (!mapMatrix[x, y])
+                {
+                    freeCells.Add((x, y));
+                }
+            }
+        }
+
+        if (freeCells.Count == 0)
+        {
+            Debug.LogError("No free cells found in the map!");
+            return (0, 0); // Fallback
+        }
+
+        return freeCells[UnityEngine.Random.Range(0, freeCells.Count)];
+    }
 
     private void PrintMatrixInConsole(){
         int rows = mapMatrix.GetLength(0);
@@ -293,32 +313,24 @@ public class Astar : MonoBehaviour
     // Draw the A* path
     void DrawAStarPath(Queue<(int, int)> path)
     {
-        if (aStarLineRenderer == null) { Debug.LogError("aStarLineRenderer is null"); return; }
-        if (path.Count == 0) { Debug.LogWarning("Path is empty, nothing to draw"); return; }
+        if (aStarLineRenderer == null || path.Count == 0) return;
         
         List<Vector3> worldPositions = new List<Vector3>();
         
         // Add Pacman's current position as start
-        Vector3 startPos = pacman.transform.position;
-        worldPositions.Add(startPos);
-        Debug.Log($"Starting path draw at: {startPos}");
+        worldPositions.Add(pacman.transform.position);
         
         // Add all path points
         foreach (var step in path)
         {
-            Vector3 worldPos = GridToWorldPosition(step.Item1, step.Item2);
-            worldPositions.Add(worldPos);
-            Debug.Log($"Added path point: Grid({step.Item1},{step.Item2}) -> World({worldPos})");
+            worldPositions.Add(GridToWorldPosition(step.Item1, step.Item2));
         }
-
-        Debug.Log($"Total points in path visualization: {worldPositions.Count}");
         
-        // Set line renderer positions
         aStarLineRenderer.positionCount = worldPositions.Count;
         for (int i = 0; i < worldPositions.Count; i++)
         {
             aStarLineRenderer.SetPosition(i, worldPositions[i]);
-            Debug.Log($"Set line position {i} to {worldPositions[i]}");
         }
     }
 }
+*/
