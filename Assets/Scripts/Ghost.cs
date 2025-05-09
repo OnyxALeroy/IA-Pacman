@@ -54,6 +54,12 @@ public class Ghost : MonoBehaviour
         }
     }
 
+    public void SetPosition(Vector3 position)
+    {
+        position.z = transform.position.z;
+        transform.position = position;
+    }
+
     public void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Pacman"))

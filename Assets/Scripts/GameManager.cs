@@ -36,6 +36,7 @@ public class GameManager : MonoBehaviour
         {
             pellet.gameObject.SetActive(true);
         }
+        this.pacman.SetScore(0);
         ResetState();
     }
     
@@ -48,6 +49,7 @@ public class GameManager : MonoBehaviour
         }
         this.pacman.ResetState();
     }
+
 
     private void GameOver()
     {
@@ -71,9 +73,9 @@ public class GameManager : MonoBehaviour
         if (pacman.GetLives() <= 0)
         {
             GameOver();
-        }
-        else
-        {
+
+        } else {
+            this.pacman.SetScore(this.pacman.GetScore()-100);
             Invoke(nameof(ResetState), 3);
         }
     }
@@ -92,7 +94,18 @@ public class GameManager : MonoBehaviour
 
     public void PowerPelletEaten(PowerPellet powerPellet)
     {
-        // TODO : Ghosts have to flee
+        for (int i = 0; i < ghosts.Length; i++) 
+        {
+            if (ghosts[i].feared == null)
+            {
+                Debug.LogError($"Ghost {i} does not have a feared component!");
+            }
+            else
+            {
+                ghosts[i].feared.Enable(powerPellet.duration);
+                Debug.Log($"Ghost {i} is now feared for {powerPellet.duration} seconds.");
+            }
+        }
 
         Invoke(nameof(ResetGhostMultiplier), powerPellet.duration);
         CancelInvoke();

@@ -2,14 +2,19 @@ using UnityEngine;
 
 public class Pacman : MonoBehaviour
 {
+    [SerializeField]
+    private SpriteRenderer spriteRenderer;
+    private CircleCollider2D circleCollider;
     public Movement movement { get; private set; }
 
     protected int lives;
     protected int score;
-
-    protected void Awake()
+    public Transform Start;
+    
+    private void Awake()
     {
         this.movement = GetComponent<Movement>();
+        this.circleCollider = GetComponent<CircleCollider2D>(); // Initialize the circleCollider
     }
 
     private void Update()
@@ -37,8 +42,19 @@ public class Pacman : MonoBehaviour
 
     public void ResetState()
     {
-        this.movement.ResetState();
-        this.gameObject.SetActive(true);
+        enabled = true;
+        spriteRenderer.enabled = true;
+        circleCollider.enabled = true;
+        movement.ResetState();
+
+        // Reset Pacman's position to the starting point
+        if (Start != null)
+        {
+            transform.position = Start.position;
+        }
+
+        gameObject.SetActive(true);
+        Debug.Log("Pacman Reset State");
     }
 
 
