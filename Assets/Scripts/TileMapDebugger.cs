@@ -79,7 +79,6 @@ public class TilemapDebugger : MonoBehaviour
             {
                 row += walkableMatrix[x, y] ? "1 " : "0 ";
             }
-            Debug.Log(row);
         }
     }
 }

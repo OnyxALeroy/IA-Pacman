@@ -57,38 +57,16 @@ public class Movement : MonoBehaviour
         {
             this.direction = newDirection;
             this.nextDirection = Vector2.zero;
-
-            // Debug log for direction
-            if (newDirection == Vector2.up)
-            {
-                Debug.Log("Pacman is moving UP");
-            }
-            else if (newDirection == Vector2.down)
-            {
-                Debug.Log("Pacman is moving DOWN");
-            }
-            else if (newDirection == Vector2.left)
-            {
-                Debug.Log("Pacman is moving LEFT");
-            }
-            else if (newDirection == Vector2.right)
-            {
-                Debug.Log("Pacman is moving RIGHT");
-            }
-
-            Debug.Log($"Direction set to: {newDirection}");
         }
         else
         {
             this.nextDirection = newDirection;
-            Debug.Log($"Next direction set to: {newDirection}");
         }
     }
 
     public bool Occupied(Vector2 direction)
     {
         RaycastHit2D hit = Physics2D.BoxCast(transform.position, Vector2.one * 0.75f, 0f, direction, 0.5f, obstacleLayer);
-        Debug.Log($"Checking direction {direction}: {(hit.collider != null ? "Blocked" : "Free")}");
         return hit.collider != null;
     }
 }

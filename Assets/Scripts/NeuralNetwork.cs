@@ -67,10 +67,7 @@ public class NeuralNetwork : MonoBehaviour
             }
             outputLayer[i] = (float)Math.Tanh(hiddenToOutputSum); // Activation function
         }
-
-        // Debug the output layer
-        Debug.Log($"Outputs: {string.Join(", ", outputLayer)}");
-
+        
         // Determine the direction with the highest output value
         int maxIndex = 0;
         for (int i = 1; i < outputSize; i++)

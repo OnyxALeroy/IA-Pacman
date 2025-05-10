@@ -3,11 +3,11 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class Pellet : MonoBehaviour
 {
-    public int points = 10;
+    public int points = 100;
 
     protected virtual void Eat()
     {
-        FindObjectOfType<GameManager>().PelletEaten(this);
+        GetComponentInParent<GameManager>().PelletEaten(this);
     }
 
     private void OnTriggerEnter2D(Collider2D other)

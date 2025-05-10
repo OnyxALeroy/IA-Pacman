@@ -4,9 +4,17 @@ public class PowerPellet : Pellet
 {
     public float duration = 8f;
 
-    protected override void Eat()
+    protected virtual void Eat()
     {
-        FindObjectOfType<GameManager>().PowerPelletEaten(this);
+        GetComponentInParent<GameManager>().PelletEaten(this);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        Pacman pacman = other.GetComponent<Pacman>();
+        if (other.gameObject.layer == LayerMask.NameToLayer("Pacman")) {
+            Eat();
+        }
     }
 
 }

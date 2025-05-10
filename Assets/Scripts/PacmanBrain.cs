@@ -2,33 +2,44 @@ using UnityEngine;
 
 public class PacmanBrain : Pacman
 {
-    private NeuralNetwork neuralNetwork { get; set; }
+    public Genome genome { get; set; }
     public float fitness { get; private set; } = 0f;
+
+    private float aliveTime = 0f; // Timer to track how long Pacman is alive
 
     private new void Awake()
     {
-        base.Awake(); // Call the base class's Awake method
-        this.neuralNetwork = GetComponent<NeuralNetwork>();
+        base.Awake();
+        Application.runInBackground = true;
+        Debug.Log("Pacman lives : " + this.lives);
 
-        if (this.neuralNetwork == null)
+        this.genome = new Genome();
+
+        if (this.genome == null)
         {
-            Debug.LogError("NeuralNetwork component is missing on the GameObject!");
+            Debug.LogError("Genome component is missing on the GameObject!");
         }
     }
 
     private void Update()
     {
-        if (this.movement == null || this.neuralNetwork == null)
+        if (this.movement == null || this.genome == null)
         {
-            Debug.LogError("Movement or NeuralNetwork is not initialized!");
+            Debug.LogError("Movement or Genome is not initialized!");
             return;
+        }
+
+        // Increment the alive time while Pacman is alive
+        if (this.lives > 0)
+        {
+            aliveTime += Time.deltaTime; // Increment by the time elapsed since the last frame
         }
 
         // Gather inputs for the neural network
         float[] inputs = GatherInputs();
 
         // Get the next direction from the neural network
-        Vector2 nextDirection = neuralNetwork.GetNextDirection(inputs);
+        Vector2 nextDirection = genome.GetNextDirection(inputs);
 
         // Set Pacman's direction
         this.movement.SetDirection(nextDirection);
@@ -36,6 +47,18 @@ public class PacmanBrain : Pacman
         // Rotate Pacman to face the direction of movement
         float angle = Mathf.Atan2(-this.movement.direction.x, this.movement.direction.y);
         this.transform.rotation = Quaternion.AngleAxis(angle * Mathf.Rad2Deg, Vector3.forward);
+    }
+
+    public override void ResetState()
+    {
+        base.ResetState();
+        this.aliveTime = 0f;
+    }
+
+    public void ChangeGenome(Genome newGenome)
+    {
+        Debug.Log("-----------------------  Changing genome --------------------------------");
+        genome = newGenome;
     }
 
     private float[] GatherInputs()
@@ -61,9 +84,6 @@ public class PacmanBrain : Pacman
 
         // Distance to the nearest pellet (normalized)
         inputs[4] = FindClosestPelletDistance() / 10f;
-
-        // Debug the inputs
-        Debug.Log($"Inputs: {string.Join(", ", inputs)}");
 
         return inputs;
     }
@@ -106,8 +126,10 @@ public class PacmanBrain : Pacman
         return closestDistance;
     }
 
-    public void EvaluateFitness()
+    public float EvaluateFitness()
     {
-        this.fitness = this.score;
+        float calculatedFitness = (float)System.Math.Round((float)this.score + 500 * (float)this.lives + this.aliveTime * 5, 1); // Include alive time in fitness
+        Debug.Log($"Evaluating Fitness: Score = {this.score}, Lives = {this.lives}, Alive Time = {aliveTime}, Calculated Fitness = {calculatedFitness}");
+        return calculatedFitness;
     }
 }

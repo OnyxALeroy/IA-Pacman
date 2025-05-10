@@ -3,7 +3,8 @@ using UnityEngine;
 
 public class ScoreUI : MonoBehaviour
 {
-    public GameManager game; // Assign in Inspector
+    [SerializeField] private Pacman[] pacman;
+    [SerializeField] private PopulationManager population;
     private TextMeshProUGUI text;
 
     void Start()
@@ -13,9 +14,14 @@ public class ScoreUI : MonoBehaviour
 
     void Update()
     {
-        if (game != null)
+        text.text = "Best Score: " + population.GetBestFitness() + "\n" +
+                    "Generation: " + population.gen + "\n";
+        for (int i = 0; i < pacman.Length; i++)
         {
-            text.text = "Score: " + game.GetScore();
+            if (pacman[i] != null)
+            {
+                text.text += "Score " + i + " : " + pacman[i].GetScore() + "\n";
+            }
         }
     }
 }

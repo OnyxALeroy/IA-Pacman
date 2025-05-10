@@ -6,12 +6,11 @@ public class Pacman : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private CircleCollider2D circleCollider;
     public Movement movement { get; private set; }
-
-    protected int lives;
-    protected int score;
-    public Transform Start;
+    protected int lives = 3;
+    protected int score = 0;
+    public Transform StartingPosition;
     
-    private void Awake()
+    protected void Awake()
     {
         this.movement = GetComponent<Movement>();
         this.circleCollider = GetComponent<CircleCollider2D>(); // Initialize the circleCollider
@@ -40,7 +39,17 @@ public class Pacman : MonoBehaviour
         this.transform.rotation = Quaternion.AngleAxis(angle * Mathf.Rad2Deg, Vector3.forward);
     }
 
-    public void ResetState()
+    public void SetStartingPosition(Transform start)
+    {
+        this.StartingPosition = start;
+    }
+
+    public Transform GetStartingPosition()
+    {
+        return this.StartingPosition;
+    }
+
+    public virtual void ResetState()
     {
         enabled = true;
         spriteRenderer.enabled = true;
@@ -48,13 +57,12 @@ public class Pacman : MonoBehaviour
         movement.ResetState();
 
         // Reset Pacman's position to the starting point
-        if (Start != null)
+        if (StartingPosition != null)
         {
-            transform.position = Start.position;
+            transform.position = StartingPosition.position;
         }
 
         gameObject.SetActive(true);
-        Debug.Log("Pacman Reset State");
     }
 
 

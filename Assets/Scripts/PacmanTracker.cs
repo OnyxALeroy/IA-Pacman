@@ -9,6 +9,6 @@ public class PacmanCoord : MonoBehaviour
     void Update()
     {
         Vector3Int pacmanTileCoords = tilemap.WorldToCell(pacman.position);
-        Debug.Log("Pac-Man Coords: " + pacmanTileCoords);
+        // Debug.Log("Pac-Man Coords: " + pacmanTileCoords);
     }
 }
