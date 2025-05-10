@@ -7,6 +7,7 @@ using UnityEngine.Tilemaps;
 public class Astar : MonoBehaviour
 {
     [SerializeField] Tilemap tilemap;
+    [SerializeField] TilemapDebugger mapDebugger;
     [SerializeField] PacmanCoord pacmanCoord;
     [SerializeField] Pacman pacman;
     [SerializeField] bool canUserInteract = false;
@@ -20,7 +21,6 @@ public class Astar : MonoBehaviour
 
     // Grid-relative attributes
     private bool[,] mapMatrix;
-    private Vector2Int mapSize;
     private Graph<(int, int)> mapGraph;
 
     // Debug Components (for drawing the paths)
@@ -56,9 +56,8 @@ public class Astar : MonoBehaviour
     void Start(){
         if (debugMode){ InitializeLineRenderers(); }
 
-        // FIXME: call the method to get this
-        mapMatrix = null;
-        mapSize = new Vector2Int(mapMatrix.GetLength(0), mapMatrix.GetLength(1));
+        mapDebugger.StartTilemapDebugger();
+        mapMatrix = mapDebugger.walkableMatrix;
         if (debugMode) { PrintMatrixInConsole(); }
 
         mapGraph = GraphBuilder.BuildGraph(mapMatrix, debugMode);
@@ -86,7 +85,7 @@ public class Astar : MonoBehaviour
             (int x, int y) = (cell.x, -cell.y);
             
             // Check if this is a valid tile and set it as destination
-            if (x >= 0 && x < mapSize.x && y >= 0 && y < mapSize.y && mapMatrix[x, y])
+            if (!mapMatrix[y, x])
             {
                 currentDestination = (x, y);
                 hasDestinationChanged = true;
@@ -95,8 +94,7 @@ public class Astar : MonoBehaviour
             else
             {
                 Debug.LogWarning($"Invalid destination at grid position ({x},{y})");
-                Debug.LogWarning($"Accounted map size ({mapSize.x},{mapSize.y})");
-                Debug.LogWarning($"HasTile? = {mapMatrix[x, y]}");
+                Debug.LogWarning($"HasTile? = {!mapMatrix[y, x]}");
             }
         }
 
@@ -187,7 +185,7 @@ public class Astar : MonoBehaviour
         (int, int) initialPosition = GetPacmanPositionInGrid();
 
         // Check if destination is valid
-        if (!mapMatrix[currentDestination.Item1, currentDestination.Item2])
+        if (!mapMatrix[currentDestination.Item2, currentDestination.Item1])
         {
             Debug.LogError($"Destination {currentDestination} is not a valid tile!");
             return new Queue<(int, int)>();
@@ -264,16 +262,16 @@ public class Astar : MonoBehaviour
     // --------------------------------------------------------------------------------------------
 
     private void PrintMatrixInConsole(){
-        int rows = mapMatrix.GetLength(0);
-        int cols = mapMatrix.GetLength(1);
+        int rows = mapMatrix.GetLength(1);
+        int cols = mapMatrix.GetLength(0);
 
         Debug.Log("Map Matrix:");
-        for (int y = cols - 1; y >= 0; y--)
+        for (int x = 0; x < rows; x++)
         {
             string line = "";
-            for (int x = 0; x < rows; x++)
+            for (int y = cols - 1; y >= 0; y--)
             {
-                line += mapMatrix[x, y] ? "1 " : "0 ";
+                line += mapMatrix[y, x] ? "1 " : "0 ";
             }
             Debug.Log(line);
         }

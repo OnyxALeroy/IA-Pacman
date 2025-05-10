@@ -1548,6 +1548,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilemap: {fileID: 1203097368}
+  mapDebugger: {fileID: 1223086349}
   pacmanCoord: {fileID: 999078555}
   pacman: {fileID: 1535157184}
   canUserInteract: 1
@@ -4653,6 +4654,8 @@ MonoBehaviour:
   tileSize: 1
   alpha_zero: 1
   monteCarlo: {fileID: 1806202457}
+  spriteRenderer: {fileID: 0}
+  Start: {fileID: 0}
 --- !u!50 &1535157186
 Rigidbody2D:
   serializedVersion: 5

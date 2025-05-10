@@ -7,7 +7,7 @@ public class TilemapDebugger : MonoBehaviour
     public Vector3Int debugCellPosition = new Vector3Int(0, 0, 0);
     public bool[,] walkableMatrix;
 
-    void Start()
+    public void StartTilemapDebugger()
     {
         GenerateWalkableMatrix();
     }

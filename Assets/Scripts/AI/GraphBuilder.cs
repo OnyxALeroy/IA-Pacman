@@ -22,28 +22,28 @@ public class GraphBuilder{
         Graph<(int, int)> g = new Graph<(int, int)>();
         Dictionary<(int, int), List<(int, int)>> edges = new Dictionary<(int, int), List<(int, int)>>();
 
-        for (int i = 0; i < matrix.GetLength(0); i++){
-            for (int j = 0; j < matrix.GetLength(1); j++){
-                if (matrix[i, j]){  // then the (i,j) case is free
+        for (int i = 0; i < matrix.GetLength(1); i++){
+            for (int j = 0; j < matrix.GetLength(0); j++){
+                if (!matrix[j, i]){  // then the (i,j) case is free
                     List<(int, int)> neighbors = new List<(int, int)>();
 
                     if (i > 0){
-                        if (matrix[i-1, j]){
+                        if (!matrix[j, i-1]){
                             neighbors.Add((i-1, j));
                         }
                     }
-                    if (i < matrix.GetLength(0) - 1){
-                        if (matrix[i+1, j]){
+                    if (i < matrix.GetLength(1) - 1){
+                        if (!matrix[j, i+1]){
                             neighbors.Add((i+1, j));
                         }
                     }
                     if (j > 0){
-                        if (matrix[i, j-1]){
+                        if (!matrix[j-1, i]){
                             neighbors.Add((i, j-1));
                         }
                     }
-                    if (j < matrix.GetLength(1) - 1){
-                        if (matrix[i, j+1]){
+                    if (j < matrix.GetLength(0) - 1){
+                        if (!matrix[j+1, i]){
                             neighbors.Add((i, j+1));
                         }
                     }
@@ -57,9 +57,9 @@ public class GraphBuilder{
 
         if (showDebug){
             int availableTilesCount = 0;
-            for (int i = 0; i < matrix.GetLength(0); i++){
-                for (int j = 0; j < matrix.GetLength(1); j++){
-                    if (matrix[i, j]){  // then the (i,j) case is free
+            for (int i = 0; i < matrix.GetLength(1); i++){
+                for (int j = 0; j < matrix.GetLength(0); j++){
+                    if (!matrix[j, i]){  // then the (i,j) case is free
                         availableTilesCount += 1;
                     }
                 }
