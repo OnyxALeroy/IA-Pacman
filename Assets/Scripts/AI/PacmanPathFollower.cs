@@ -34,9 +34,9 @@ public class PacmanPathFollower : MonoBehaviour
         if (!isFollowingPath)
         {
             // Only start following if there's a path available
-            if (astar.currentPath != null && astar.currentPath.Count > 0)
+            if (astar.CurrentPath != null && astar.CurrentPath.Count > 0)
             {
-                currentPath = new Queue<(int, int)>(astar.currentPath);
+                currentPath = new Queue<(int, int)>(astar.CurrentPath);
                 isFollowingPath = true;
                 GetNextWaypoint();
             }

@@ -1620,13 +1620,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9e7fb7ef1135b041948e2d9d5fb3c5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameManager: {fileID: 0}
-  alpha: 0
-  beta: 0
-  gamma_g: 0
-  delta: 0
-  epsilon: 0
-  omega: 0
+  gameManager: {fileID: 1210685156}
+  astar: {fileID: 999078552}
+  alpha: 1
+  beta: 1
+  gamma: 1
+  delta: 1
+  epsilon: 1
+  zeta: 1
 --- !u!114 &1166765799 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6866306156535838161, guid: 7505d3ce75b4516479e3d03250c12a24, type: 3}
@@ -4323,6 +4324,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c500a59e231c684c95cd2c499b32d49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mapDebugger: {fileID: 1223086349}
   ghosts:
   - {fileID: 77599893}
   - {fileID: 0}
@@ -4376,6 +4378,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tilemap: {fileID: 1203097368}
   debugCellPosition: {x: 0, y: 0, z: 0}
+  positionInGrid: {x: -13.5, y: 6.5, z: 0}
 --- !u!4 &1223086350
 Transform:
   m_ObjectHideFlags: 0

@@ -14,9 +14,10 @@ public class Astar : MonoBehaviour
 
     // A* components
     public (int, int) currentDestination;
-    public Queue<(int, int)> currentPath = new Queue<(int, int)>();
+    private Queue<(int, int)> currentPath = new Queue<(int, int)>();
     private bool hasDestinationChanged = false;
-    
+    public Queue<(int, int)> CurrentPath => currentPath;
+
     // Grid-relative attributes
     private bool[,] mapMatrix;
     private Vector2Int mapSize;
@@ -61,7 +62,7 @@ public class Astar : MonoBehaviour
         if (debugMode) { PrintMatrixInConsole(); }
 
         mapGraph = GraphBuilder.BuildGraph(mapMatrix, debugMode);
-        currentDestination = GetPacmanPositionInGrid();
+        setNewDestination(GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2);
         hasDestinationChanged = true;
         Debug.Log($"Default destination set: {currentDestination}");
     }
@@ -71,6 +72,7 @@ public class Astar : MonoBehaviour
     public void setNewDestination(int targetX, int targetY){
         currentDestination = (targetX, targetY);
         hasDestinationChanged = true;
+        currentPath = FindShortestPath();
     }
 
     void Update(){
@@ -102,7 +104,6 @@ public class Astar : MonoBehaviour
         if (hasDestinationChanged){
             if (aStarLineRenderer != null) { aStarLineRenderer.positionCount = 0; }
 
-            currentPath = FindShortestPath();
             hasDestinationChanged = false;
 
             if (debugMode){

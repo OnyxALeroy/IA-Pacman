@@ -5,6 +5,7 @@ public class TilemapDebugger : MonoBehaviour
 {
     public Tilemap tilemap; // drag your tilemap here in Inspector
     public Vector3Int debugCellPosition = new Vector3Int(0, 0, 0); // tile to debug
+    public Vector3 positionInGrid = new Vector3(0, 0, 0);
 
     void OnDrawGizmos()
     {
@@ -12,6 +13,7 @@ public class TilemapDebugger : MonoBehaviour
 
         Vector3 worldPos = tilemap.CellToWorld(debugCellPosition);
         Gizmos.color = Color.red;
+        positionInGrid = worldPos + tilemap.cellSize / 2;
         Gizmos.DrawSphere(worldPos + tilemap.cellSize / 2, 0.1f); // center of the tile
     }
 }

@@ -1,14 +1,17 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] TilemapDebugger mapDebugger;
+
     public Ghost[] ghosts;
 
     public Pacman pacman;
 
     public Transform pellets;
 
-
+    public Dictionary<Vector2Int, Transform> pelletCoords { get; private set; } = new Dictionary<Vector2Int, Transform>();
     public int ghostMultiplier { get; private set; } = 1;
     public int score { get; private set; }
     public int lives { get; private set; } = 3;
@@ -35,13 +38,21 @@ public class GameManager : MonoBehaviour
 
     private void NewRound()
     {
+        pelletCoords = new Dictionary<Vector2Int, Transform>();
+        Vector2 topLeftTileCoord = new Vector2(mapDebugger.positionInGrid.x, mapDebugger.positionInGrid.y);
+        Vector3 tileSize = mapDebugger.tilemap.cellSize;
         foreach(Transform pellet in pellets)
         {
             pellet.gameObject.SetActive(true);
+
+            // Adding its coords in grid to the dict
+            Vector3 pelletCenter = pellet.position;
+            Vector2Int pC = new Vector2Int((int)((pelletCenter.y - topLeftTileCoord.y)/tileSize.y), (int)((pelletCenter.x - topLeftTileCoord.x)/tileSize.x));
+            pelletCoords[pC] = pellet;
         }
         ResetState();
     }
-    
+
     private void ResetState()
     {
         ResetGhostMultiplier();
