@@ -1620,6 +1620,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9e7fb7ef1135b041948e2d9d5fb3c5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameManager: {fileID: 0}
+  alpha: 0
+  beta: 0
+  gamma_g: 0
+  delta: 0
+  epsilon: 0
+  omega: 0
 --- !u!114 &1166765799 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6866306156535838161, guid: 7505d3ce75b4516479e3d03250c12a24, type: 3}
@@ -6323,6 +6330,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pacman: {fileID: 1535157184}
   game_manager: {fileID: 1210685156}
+  evaluator: {fileID: 1158661170}
 --- !u!4 &1806202458
 Transform:
   m_ObjectHideFlags: 0
@@ -6411,3 +6419,4 @@ SceneRoots:
   - {fileID: 257932224}
   - {fileID: 1158661169}
   - {fileID: 1806202458}
+  - {fileID: 999078553}

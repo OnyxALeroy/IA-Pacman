@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Evaluation : MonoBehaviour
+public class Evaluator : MonoBehaviour
 {
     [SerializeField] GameManager gameManager;
     [SerializeField] float alpha = 0.0f;
@@ -40,7 +40,7 @@ public class Evaluation : MonoBehaviour
 
     // Evaluation function
 
-    public float Evaluate(){
+    public float Evaluate(GameState game_state){
         return PelletRemainingEvaluation() + DistanceToNearestPelletEvaluation() + ActiveGhostDangerEvaluation()
             + ScaredGhostRewardEvaluation() + CapsuleRemainingEvaluation() + ScoreEvaluation();
     }

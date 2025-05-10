@@ -3,12 +3,12 @@ using System.Linq;
 using UnityEngine;
 
 public class MonteCarlo : MonoBehaviour {
+    [SerializeField] Pacman pacman;
+    [SerializeField] GameManager game_manager;
+    [SerializeField] Evaluator evaluator;
+
     private const int iterations_nb = 100;
     private const int simulation_depth = 10;
-    [SerializeField]
-    Pacman pacman;
-    [SerializeField]
-    GameManager game_manager;
     MonteCarloNode root;
     private MonteCarloNode current_node;
     private float timer = 0f;
@@ -111,25 +111,7 @@ public class MonteCarlo : MonoBehaviour {
                 game_state.score += pellets[pacman_position_int].points;
             }
             // TODO: gérér les respawn des pellets
-            reward += calculate_reward(game_state);
-        }
-        return reward;
-    }
-    private float calculate_reward(GameState game_state) {
-        // FIXME: à remplacer par le evaluator
-        float reward = 0f;
-        foreach (var ghost in game_state.ghosts) {
-            if (ghost.activated) {
-                float distance = Vector3.Distance(game_state.pacman_position, ghost.position);
-
-                if (distance < 0.5f) {
-                    return -100f;
-                }
-
-                if (distance < 10f) {
-                    reward -= 10f / (distance + 0.1f);
-                }
-            }
+            reward += evaluator.Evaluate(game_state);
         }
         return reward;
     }
