@@ -12,9 +12,18 @@ public class Pacman : MonoBehaviour {
     float move_delay = 0.2f;
     float tile_size = 1.0f;
 
+    [SerializeField]
+    private SpriteRenderer spriteRenderer;
+    private CircleCollider2D circleCollider;
     public Movement movement { get; private set; }
 
-    private void Awake() { this.movement = GetComponent<Movement>(); }
+    public Transform Start; // Reference to Pacman's starting position
+
+    private void Awake()
+    {
+        this.movement = GetComponent<Movement>();
+        this.circleCollider = GetComponent<CircleCollider2D>(); // Initialize the circleCollider
+    }
 
     private void Update() {
         if (isMoving)
@@ -57,8 +66,19 @@ public class Pacman : MonoBehaviour {
     }
 
     public void ResetState() {
-        this.movement.ResetState();
-        this.gameObject.SetActive(true);
+        enabled = true;
+        spriteRenderer.enabled = true;
+        circleCollider.enabled = true;
+        movement.ResetState();
+
+        // Reset Pacman's position to the starting point
+        if (Start != null)
+        {
+            transform.position = Start.position;
+        }
+
+        gameObject.SetActive(true);
+        Debug.Log("Pacman Reset State");
         isMoving = false;
     }
 }

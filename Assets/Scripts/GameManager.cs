@@ -50,6 +50,7 @@ public class GameManager : MonoBehaviour
             Vector2Int pC = new Vector2Int((int)((pelletCenter.y - topLeftTileCoord.y)/tileSize.y), (int)((pelletCenter.x - topLeftTileCoord.x)/tileSize.x));
             pelletCoords[pC] = pellet;
         }
+        this.score = 0;
         ResetState();
     }
 
@@ -66,6 +67,11 @@ public class GameManager : MonoBehaviour
     private void SetScore(int score)
     {
         this.score = score;
+    }
+
+    public int GetScore()
+    {
+        return this.score;
     }
 
     private void GameOver()
@@ -96,6 +102,7 @@ public class GameManager : MonoBehaviour
         {
             GameOver();
         } else {
+            this.score += -100;
             Invoke(nameof(ResetState), 3);
         }
     }
@@ -114,7 +121,18 @@ public class GameManager : MonoBehaviour
 
     public void PowerPelletEaten(PowerPellet powerPellet)
     {
-        // TODO : Ghosts have to flee
+        for (int i = 0; i < ghosts.Length; i++) 
+        {
+            if (ghosts[i].feared == null)
+            {
+                Debug.LogError($"Ghost {i} does not have a feared component!");
+            }
+            else
+            {
+                ghosts[i].feared.Enable(powerPellet.duration);
+                Debug.Log($"Ghost {i} is now feared for {powerPellet.duration} seconds.");
+            }
+        }
 
         Invoke(nameof(ResetGhostMultiplier), powerPellet.duration);
         CancelInvoke();
