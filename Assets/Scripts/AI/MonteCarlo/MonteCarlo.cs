@@ -3,9 +3,12 @@ using System.Linq;
 using UnityEngine;
 
 public class MonteCarlo : MonoBehaviour {
-    [SerializeField] Pacman pacman;
-    [SerializeField] GameManager game_manager;
-    [SerializeField] Evaluator evaluator;
+    [SerializeField]
+    Pacman pacman;
+    [SerializeField]
+    GameManager game_manager;
+    [SerializeField]
+    Evaluator evaluator;
 
     private const int iterations_nb = 100;
     private const int simulation_depth = 10;
@@ -51,11 +54,14 @@ public class MonteCarlo : MonoBehaviour {
         Vector3 new_position = node.game_state.pacman_position + new Vector3(move.x, move.y, 0);
         GameState new_game_state = node.game_state.clone();
         new_game_state.pacman_position = new_position;
+        // TODO: vérifier si le pacman ne mange pas de pellets
         MonteCarloNode new_node = new MonteCarloNode(move, node, 0.0f, new_game_state);
         move_ghosts(new_game_state);
+        // TODO: vérifier si le pacman ne s'est pas fait manger?
         node.children[move] = new_node;
         return new_node;
     }
+    // TODO: gérér ce qui se passe lorsque le pacman mange une capsule
 
     private bool is_complete(MonteCarloNode node) {
         List<Vector2> valid_moves =
@@ -125,7 +131,9 @@ public class MonteCarlo : MonoBehaviour {
                 }
                 Vector3 random_dir = available_ghost_directions[Random.Range(0, available_ghost_directions.Count)];
                 Vector3 new_ghost_position = ghost.position + new Vector3(random_dir.x, random_dir.y, 0);
+                Vector2 new_ghost_position_coord = ghost.coord + new Vector2(random_dir.x, random_dir.y);
                 ghost.position = new_ghost_position;
+                ghost.coord = new_ghost_position_coord;
             }
         }
     }
@@ -163,20 +171,33 @@ public class MonteCarlo : MonoBehaviour {
         List<_Ghost> _ghosts = new List<_Ghost>();
         for (int i = 0; i < ghosts.Length; i++) {
             Vector3 ghost_position;
+            bool is_ghost_feared;
             if (ghosts[i] != null && ghosts[i].gameObject.activeInHierarchy) {
                 ghost_position = ghosts[i].transform.position;
             } else {
                 ghost_position = Vector3.negativeInfinity;
             }
+            if (ghosts[i].feared) {
+                is_ghost_feared = true;
+            } else {
+                is_ghost_feared = false;
+            }
 
-            _Ghost _ghost = new _Ghost(ghost_position, i);
+            _Ghost _ghost = new _Ghost(ghost_position, i, is_ghost_feared);
             _ghosts.Add(_ghost);
         }
         Transform pellets = game_manager.pellets;
         Dictionary<Vector3Int, _Pellet> _pellets = new Dictionary<Vector3Int, _Pellet>();
         foreach (Transform pellet in pellets) {
             Vector3Int key = Vector3Int.RoundToInt(pellet.position);
-            _pellets[key] = new _Pellet(pellet.position, pellet.gameObject.activeInHierarchy);
+            bool is_power_pellet;
+            Debug.Log(pellet.GetComponent<Pellet>());
+            if (pellet.GetComponent<Pellet>() is PowerPellet) {
+                is_power_pellet = true;
+            } else {
+                is_power_pellet = false;
+            }
+            _pellets[key] = new _Pellet(pellet.position, pellet.gameObject.activeInHierarchy, is_power_pellet);
         }
 
         GameState game_state = new GameState(pacmanPosition, pacman.movement.obstacleLayer, _ghosts, _pellets, 0);

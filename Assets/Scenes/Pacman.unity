@@ -4407,7 +4407,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c500a59e231c684c95cd2c499b32d49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapDebugger: {fileID: 0}
+  mapDebugger: {fileID: 1223086349}
   ghosts:
   - {fileID: 77599893}
   - {fileID: 2099002810}
@@ -4877,7 +4877,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tileSize: 1
   alpha_zero: 1
-  monteCarlo: {fileID: 0}
+  monteCarlo: {fileID: 1952629815}
   spriteRenderer: {fileID: 1535157187}
   Start: {fileID: 1447035658}
 --- !u!50 &1535157186
