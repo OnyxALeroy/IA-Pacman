@@ -6,11 +6,13 @@ public class _Pellet {
     public bool active;
     public float timer;
     public int points;
+    public bool is_power_pellet;
 
-    public _Pellet(Vector3 position, bool active = true) {
+    public _Pellet(Vector3 position, bool active, bool is_power_pellet) {
         this.position = position;
         this.active = active;
         this.timer = 0f;
+        this.is_power_pellet = is_power_pellet;
     }
     public bool is_near(Vector3 pacman_position) {
         float distance = 0.5f;
@@ -27,23 +29,33 @@ public class _Ghost {
     public bool activated { get; set; }
     public float duration { get; set; }
     public float timer;
+    public bool is_ghost_feared;
+    public Vector2 coord;
 
-    public _Ghost(Vector3 position, int number) {
+    // à changer s'il faut
+    private Vector2 grid_center = new Vector2(13, -7);
+
+    public _Ghost(Vector3 position, int number, bool is_ghost_feared) {
         this.position = position;
         this.timer = 0f;
+        this.is_ghost_feared = is_ghost_feared;
         switch (number) {
             case 0:
                 this.duration = 0.0f;
                 this.activated = true;
+                this.coord = grid_center;
                 break;
             case 1:
                 this.duration = 15.0f;
+                this.coord = grid_center + new Vector2(-1, -1);
                 break;
             case 2:
-                this.duration = 25.0f;
+                this.duration = 20.0f;
+                this.coord = grid_center + new Vector2(1, -1);
                 break;
             case 3:
-                this.duration = 20.0f;
+                this.duration = 25.0f;
+                this.coord = grid_center + new Vector2(0, -1);
                 break;
             default:
                 this.duration = 0;
