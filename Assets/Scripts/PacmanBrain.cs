@@ -7,11 +7,12 @@ public class PacmanBrain : Pacman
 
     private float aliveTime = 0f; // Timer to track how long Pacman is alive
 
+    private float powerPelletActive = 0f; 
+
     private new void Awake()
     {
         base.Awake();
         Application.runInBackground = true;
-        Debug.Log("Pacman lives : " + this.lives);
 
         this.genome = new Genome();
 
@@ -52,18 +53,21 @@ public class PacmanBrain : Pacman
     public override void ResetState()
     {
         base.ResetState();
-        this.aliveTime = 0f;
+    }
+
+    public void ResetTimer()
+    {
+        aliveTime = 0f;
     }
 
     public void ChangeGenome(Genome newGenome)
     {
-        Debug.Log("-----------------------  Changing genome --------------------------------");
         genome = newGenome;
     }
 
     private float[] GatherInputs()
     {
-        float[] inputs = new float[5];
+        float[] inputs = new float[7];
 
         // Pacman's position (normalized)
         inputs[0] = this.transform.position.x / 10f; // Assuming the game area is roughly -10 to 10
@@ -84,6 +88,11 @@ public class PacmanBrain : Pacman
 
         // Distance to the nearest pellet (normalized)
         inputs[4] = FindClosestPelletDistance() / 10f;
+
+        // Distance to the nearest power pellet (normalized)
+        inputs[5] = FindClosestPowerPelletDistance()/10f;
+
+        inputs[6] = powerPelletActive;
 
         return inputs;
     }
@@ -124,6 +133,41 @@ public class PacmanBrain : Pacman
         }
 
         return closestDistance;
+    }
+
+        private float FindClosestPowerPelletDistance()
+    {
+        float closestDistance = float.MaxValue;
+
+        foreach (Transform pellet in GameObject.Find("Pellets").transform)
+        {
+            PowerPellet powerPellet = pellet.GetComponent<PowerPellet>();
+            if (pellet.gameObject.activeSelf && powerPellet != null)
+            {
+            float distance = Vector2.Distance(this.transform.position, pellet.position);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+            }
+            }
+        }
+
+        return closestDistance;
+    }
+
+    public void ActivatePowerPellet(float duration)
+    {
+        powerPelletActive = 1f; // Set to active
+        Debug.Log("PowerPellet activated!");
+
+        // Reset the state after the duration ends
+        Invoke(nameof(DeactivatePowerPellet), duration);
+    }
+
+    private void DeactivatePowerPellet()
+    {
+        powerPelletActive = 0f; // Set to inactive
+        Debug.Log("PowerPellet deactivated!");
     }
 
     public float EvaluateFitness()

@@ -52,6 +52,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ghost_Base_Red
       objectReference: {fileID: 0}
+    - target: {fileID: 7105718377185658830, guid: 92aadf9f2d857fe4093b05fcf36267d1, type: 3}
+      propertyPath: duration
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 8374944792390605580, guid: 92aadf9f2d857fe4093b05fcf36267d1, type: 3}
       propertyPath: m_Color.b
       value: 0.3529412

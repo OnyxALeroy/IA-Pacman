@@ -1,10 +1,11 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Genome
 {
-    private readonly int inputSize = 5; // Example: Pacman's position, ghost positions, pellet positions, etc.
-    private readonly int hiddenSize = 10; // Number of neurons in the hidden layer
-    private readonly int outputSize = 4; // Up, Down, Left, Right
+    private int inputSize = 7; // Example: Pacman's position, ghost positions, pellet positions, etc.
+    private int hiddenSize = 10; // Number of neurons in the hidden layer
+    private int outputSize = 4; // Up, Down, Left, Right
     public float[,] weightsInputHidden;
     public float[,] weightsHiddenOutput;
 
@@ -25,6 +26,28 @@ public class Genome
         weightsInputHidden = new float[inputSize, hiddenSize];
         weightsHiddenOutput = new float[hiddenSize, outputSize];
         RandomizeWeights();
+    }
+
+    public Genome(GenomeData data)
+    {
+        weightsInputHidden = UnflattenArray(data.weightsInputHidden, data.inputSize, data.hiddenSize);
+        weightsHiddenOutput = UnflattenArray(data.weightsHiddenOutput, data.hiddenSize, data.outputSize);
+        fitness = data.fitness;
+    }
+
+    // Helper method to unflatten a 1D list into a 2D array
+    private float[,] UnflattenArray(List<float> list, int rows, int cols)
+    {
+        float[,] array = new float[rows, cols];
+        int index = 0;
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                array[i, j] = list[index++];
+            }
+        }
+        return array;
     }
 
     public void RandomizeWeights()
@@ -59,11 +82,11 @@ public class Genome
 
         for (int i = 0; i < weightsInputHidden.GetLength(0); i++)
             for (int j = 0; j < weightsInputHidden.GetLength(1); j++)
-                child.weightsInputHidden[i, j] = Random.Range(0f, 1f) < 0.5f ? weightsInputHidden[i, j] : other.weightsInputHidden[i, j];
+                child.weightsInputHidden[i, j] = Random.Range(0f, 1f) < 0.6f ? weightsInputHidden[i, j] : other.weightsInputHidden[i, j];
 
         for (int i = 0; i < weightsHiddenOutput.GetLength(0); i++)
             for (int j = 0; j < weightsHiddenOutput.GetLength(1); j++)
-                child.weightsHiddenOutput[i, j] = Random.Range(0f, 1f) < 0.5f ? weightsHiddenOutput[i, j] : other.weightsHiddenOutput[i, j];
+                child.weightsHiddenOutput[i, j] = Random.Range(0f, 1f) < 0.6f ? weightsHiddenOutput[i, j] : other.weightsHiddenOutput[i, j];
 
         return child;
     }

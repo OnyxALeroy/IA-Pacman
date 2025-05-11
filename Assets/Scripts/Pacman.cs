@@ -7,7 +7,7 @@ public class Pacman : MonoBehaviour
     private CircleCollider2D circleCollider;
     public Movement movement { get; private set; }
     protected int lives = 3;
-    protected int score = 0;
+    protected float score = 0;
     public Transform StartingPosition;
     
     protected void Awake()
@@ -75,12 +75,12 @@ public class Pacman : MonoBehaviour
     {
         this.lives = lives; 
     }
-    public int GetScore()
+    public float GetScore()
     {
         return this.score;
     }
 
-    public void SetScore(int score)
+    public void SetScore(float score)
     {
         this.score = score; 
     }

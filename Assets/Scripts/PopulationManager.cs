@@ -1,3 +1,4 @@
+using System.IO; // For file operations
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,29 +7,38 @@ public class PopulationManager : MonoBehaviour
     [SerializeField] private PacmanBrain[] pacmans;
     [SerializeField] private GameManager[] gameManagers;
     public int populationSize;
-    public float mutationRate = 0.15f;
+    public float mutationRate = 0.05f;
 
     private float BestFitness;
-
     public int gen = 0;
 
+    [SerializeField] public int nbElite;
+    [SerializeField] public int nbDiversity;
+
     private List<Genome> population = new();
+    private bool isGenerationComplete = false;
 
     private void Start()
     {
         BestFitness = 0;
         populationSize = pacmans.Length;
-        SetPopulation();
-        PrintPopulation();
+        LoadPopulation();
+        if (population.Count == 0)
+        {
+            SetPopulation();
+        }        
         Debug.Log("Population size: " + population.Count);
         Debug.Log("Population initialized with " + populationSize + " genomes.");
+        InitializePopulation();
     }
 
     private void Update()
     {
-        if (NoPacmanLeft())
+        if (NoPacmanLeft() && !isGenerationComplete)
         {
+            isGenerationComplete = true; // Prevent further execution until reset
             EvolvePopulation();
+            InitializePopulation();
             ResetAllGames();
         }
     }
@@ -38,7 +48,65 @@ public class PopulationManager : MonoBehaviour
         return BestFitness;
     }
 
-    void SetPopulation()
+
+    public void SavePopulation()
+    {
+        string folderPath = Application.dataPath + "/Populations";
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        Debug.Log($"Saving population. Current population size: {population.Count}");
+
+        string filePath = $"{folderPath}/Population_{gen}.json";
+        List<GenomeData> genomeDataList = new();
+
+        foreach (Genome genome in population)
+        {
+            genomeDataList.Add(new GenomeData(genome));
+        }
+
+        string json = JsonUtility.ToJson(new PopulationData(genomeDataList), true);
+        File.WriteAllText(filePath, json);
+
+        Debug.Log($"Population saved to {filePath}");
+    }
+
+    public void LoadPopulation()
+    {
+        string folderPath = Application.dataPath + "/Populations";
+        if (!Directory.Exists(folderPath))
+        {
+            Debug.LogError("No saved populations found!");
+            return;
+        }
+
+        string[] files = Directory.GetFiles(folderPath, "Population_*.json");
+        if (files.Length == 0)
+        {
+            Debug.LogError("No saved populations found!");
+            return;
+        }
+
+        // Load the last generation file
+        Debug.Log($"Loading population from {files.Length-1} files.");
+        string lastFile = files[files.Length - 1];
+        string json = File.ReadAllText(lastFile);
+        gen = files.Length - 1; // Set the generation number based on the number of files
+        PopulationData populationData = JsonUtility.FromJson<PopulationData>(json);
+        population.Clear();
+
+        foreach (GenomeData genomeData in populationData.genomes)
+        {
+            Genome genome = new Genome(genomeData);
+            population.Add(genome);
+        }
+
+        Debug.Log($"Population loaded from {lastFile}");
+    }
+
+    private void SetPopulation()
     {
         for (int i = 0; i < populationSize; i++)
         {
@@ -47,34 +115,81 @@ public class PopulationManager : MonoBehaviour
         }
     }
 
+    private void InitializePopulation()
+    {
+        for (int i = 0; i < populationSize; i++)
+        {
+            if (gameManagers[i].pacman is PacmanBrain pacmanBrain)
+            {
+                pacmanBrain.ChangeGenome(population[i]);
+            }
+        }   
+    }
+
     public void EvolvePopulation()
     {   
         for (int i = 0; i < population.Count; i++)
         {
-            Debug.Log("Evaluating fitness for Pacman " + i + ": " + pacmans[i].EvaluateFitness());
             population[i].SetFitness(pacmans[i].EvaluateFitness());
         }
         population.Sort((a, b) => b.GetFitness().CompareTo(a.GetFitness()));
         List<Genome> newPopulation = new();
-        Genome best = population[0];
-        BestFitness = best.GetFitness();
-        newPopulation.Add(best);
-        for (int i = 1; i < populationSize-2; i ++)
-        {
-            Genome weak = population[i];
-            Genome child = best.Breed(weak);
-            child.Mutate(mutationRate);
 
+        SavePopulation();
+
+        Debug.Log("Population sorted by fitness:");
+        foreach (var genome in population)
+        {
+            Debug.Log(genome.GetFitness());
+        }
+
+        // Add elite individuals to the new population
+        for (int i = 0; i < nbElite; i++)
+        {
+            if (i == 0)
+            {
+                BestFitness = population[i].GetFitness();
+                Debug.Log("Best fitness: " + BestFitness);
+            }
+            Genome best = population[i];
+            newPopulation.Add(best);
+        }
+
+        // Allow elites to breed among themselves
+        for (int i = 0; i < nbElite; i++)
+        {
+            for (int j = i + 1; j < nbElite; j++)
+            {
+                Genome child = population[i].Breed(population[j]);
+                child.Mutate(mutationRate);
+                newPopulation.Add(child);
+            }
+        }
+
+        // Breed remaining individuals with elites
+        for (int i = nbElite; i < populationSize - nbDiversity; i++)
+        {
+            Genome strong = population[i % nbElite]; // Alternate between elites
+            Genome weak = population[i];
+            Genome child = strong.Breed(weak);
+            child.Mutate(mutationRate);
             newPopulation.Add(child);
         }
-        for (int j = populationSize-2; j < populationSize; j++)
+
+        // Ensure the new population size matches the original population size
+        while (newPopulation.Count > populationSize - nbDiversity)
         {
-            Genome NewGenome = population[j].Clone();
+            newPopulation.RemoveAt(newPopulation.Count - 1); // Remove excess individuals
+        }
+
+        // Add randomized individuals to maintain diversity
+        for (int i = 0; i < nbDiversity; i++)
+        {
+            Genome NewGenome = population[0].Clone();
             NewGenome.RandomizeWeights();
             newPopulation.Add(NewGenome);
         }
         
-
         population = newPopulation;
         gen++;
     }
@@ -112,13 +227,15 @@ public class PopulationManager : MonoBehaviour
         if (gameManagers.Length != pacmans.Length || gameManagers.Length != population.Count)
         {
             Debug.LogError("GameManagers and Pacmans arrays must be of the same length!");
+            Debug.LogError("GameManagers length: " + gameManagers.Length);
+            Debug.LogError("Pacmans length: " + pacmans.Length);
+            Debug.LogError("Population length: " + population.Count);
             return;
         }
         foreach (GameManager gameManager in gameManagers)
         {
             if (gameManager != null)
             {
-                Debug.Log("NewGame of GameManager: " + gameManager.name);
                 pacmans[i].ChangeGenome(population[i]);
                 gameManager.NewGame();
             }
@@ -127,6 +244,16 @@ public class PopulationManager : MonoBehaviour
                 Debug.LogError("GameManager reference is null!");
             }
             i++;
+        }
+        isGenerationComplete = false;
+    }
+
+    private void PrintPacmanGenomes()
+    {
+        Debug.Log("Population genome: \n");
+        foreach (Genome genome in population)
+        {
+            genome.PrintGenome();
         }
     }
 }

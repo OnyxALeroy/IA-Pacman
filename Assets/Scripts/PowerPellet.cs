@@ -6,7 +6,7 @@ public class PowerPellet : Pellet
 
     protected virtual void Eat()
     {
-        GetComponentInParent<GameManager>().PelletEaten(this);
+        GetComponentInParent<GameManager>().PowerPelletEaten(this);
     }
 
     private void OnTriggerEnter2D(Collider2D other)

@@ -28,6 +28,10 @@ public class GameManager : MonoBehaviour
     {
         this.pacman.SetScore(0);
         this.pacman.SetLives(3);
+        if (this.pacman is PacmanBrain pacmanBrain)
+        {
+            pacmanBrain.ResetTimer();
+        }
         NewRound();
     }
 
@@ -75,7 +79,7 @@ public class GameManager : MonoBehaviour
         {
             GameOver();
         } else {
-            this.pacman.SetScore(this.pacman.GetScore()-100);
+            this.pacman.SetScore(this.pacman.GetScore()*0.9f);
             Invoke(nameof(ResetState), 3);
         }
     }
@@ -101,6 +105,12 @@ public class GameManager : MonoBehaviour
                 ghosts[i].feared.Enable(powerPellet.duration);
             }
         }
+
+        if (pacman is PacmanBrain pacmanBrain)
+        {
+            pacmanBrain.ActivatePowerPellet(powerPellet.duration);
+        }
+
 
         Invoke(nameof(ResetGhostMultiplier), powerPellet.duration);
         CancelInvoke();

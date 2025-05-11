@@ -15,6 +15,7 @@ public class GhostHome : GhostBehaviour
     private void OnDisable()
     {
         StartCoroutine(ExitTransition());
+        this.ghost.chase.enabled = true;
     }
 
     private IEnumerator ExitTransition()
