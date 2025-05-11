@@ -6,6 +6,7 @@ public class TilemapDebugger : MonoBehaviour
     public Tilemap tilemap;
     public Vector3Int debugCellPosition = new Vector3Int(0, 0, 0);
     public bool[,] walkableMatrix;
+    public bool[,] transposedWalkableMatrix;
 
     public void StartTilemapDebugger()
     {
@@ -39,6 +40,8 @@ public class TilemapDebugger : MonoBehaviour
         }
 
         TrimMatrix(fullMatrix, bounds);
+
+        BuildTransposedMatrix();
     }
 
     private void TrimMatrix(bool[,] fullMatrix, BoundsInt bounds)
@@ -69,17 +72,38 @@ public class TilemapDebugger : MonoBehaviour
             }
         }
 
-        DebugMatrix();
+        DebugMatrix(walkableMatrix);
     }
 
-    private void DebugMatrix()
+    private void DebugMatrix(bool[,] matrix)
     {
-        for (int y = walkableMatrix.GetLength(1) - 1; y >= 0; y--)
+        for (int y = matrix.GetLength(1) - 1; y >= 0; y--)
         {
             string row = "";
+            for (int x = 0; x < matrix.GetLength(0); x++)
+            {
+                row += matrix[x, y] ? "1 " : "0 ";
+            }
+            Debug.Log(row);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------------
+
+    private void BuildTransposedMatrix(){
+        transposedWalkableMatrix = new bool[walkableMatrix.GetLength(1), walkableMatrix.GetLength(0)];
+        for (int y = walkableMatrix.GetLength(1) - 1; y >= 0; y--)
+        {
             for (int x = 0; x < walkableMatrix.GetLength(0); x++)
             {
-                row += walkableMatrix[x, y] ? "1 " : "0 ";
+                transposedWalkableMatrix[walkableMatrix.GetLength(1) - y - 1, x] = walkableMatrix[x, y];
+            }
+        }
+        Debug.Log("Transposable Walkable Matrix =");
+        for (int x = 0; x < transposedWalkableMatrix.GetLength(0); x++){
+            string row = "";
+            for (int y = 0; y < transposedWalkableMatrix.GetLength(1); y++){
+                row += transposedWalkableMatrix[x, y] ? "1 " : "0 ";
             }
             Debug.Log(row);
         }

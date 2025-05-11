@@ -57,7 +57,7 @@ public class Astar : MonoBehaviour
         if (debugMode){ InitializeLineRenderers(); }
 
         mapDebugger.StartTilemapDebugger();
-        mapMatrix = mapDebugger.walkableMatrix;
+        mapMatrix = mapDebugger.transposedWalkableMatrix;
         if (debugMode) { PrintMatrixInConsole(); }
 
         mapGraph = GraphBuilder.BuildGraph(mapMatrix, debugMode);
@@ -70,6 +70,7 @@ public class Astar : MonoBehaviour
 
     public void setNewDestination(int targetX, int targetY){
         currentDestination = (targetX, targetY);
+        Debug.Log($"Attempting to go to ({targetX}, {targetY}), with MapMatrix={mapMatrix[targetX, targetY]}");
         hasDestinationChanged = true;
         currentPath = FindShortestPath();
     }
@@ -82,10 +83,10 @@ public class Astar : MonoBehaviour
             Debug.Log("Clicked tilemap cell: " + cell);
 
             // Convert the clicked cell to our grid coordinates
-            (int x, int y) = (cell.x, -cell.y);
+            (int y, int x) = (cell.x, -cell.y);
             
             // Check if this is a valid tile and set it as destination
-            if (!mapMatrix[y, x])
+            if (!mapMatrix[x, y])
             {
                 currentDestination = (x, y);
                 hasDestinationChanged = true;
@@ -94,7 +95,7 @@ public class Astar : MonoBehaviour
             else
             {
                 Debug.LogWarning($"Invalid destination at grid position ({x},{y})");
-                Debug.LogWarning($"HasTile? = {!mapMatrix[y, x]}");
+                Debug.LogWarning($"mapMatrix[x, y] = {mapMatrix[x, y]}");
             }
         }
 
@@ -114,7 +115,7 @@ public class Astar : MonoBehaviour
                 Debug.Log(pathPoints);
 
                 Vector3 startingPosition = pacman.transform.position;
-                Vector3 endingPosition = GridToWorldPosition(currentDestination.Item1, currentDestination.Item2);
+                Vector3 endingPosition = GridToWorldPosition(currentDestination.Item2, currentDestination.Item1);
 
                 DrawStraightLine(startingPosition, endingPosition);
 
@@ -185,7 +186,7 @@ public class Astar : MonoBehaviour
         (int, int) initialPosition = GetPacmanPositionInGrid();
 
         // Check if destination is valid
-        if (!mapMatrix[currentDestination.Item2, currentDestination.Item1])
+        if (mapMatrix[currentDestination.Item1, currentDestination.Item2])
         {
             Debug.LogError($"Destination {currentDestination} is not a valid tile!");
             return new Queue<(int, int)>();
@@ -262,8 +263,8 @@ public class Astar : MonoBehaviour
     // --------------------------------------------------------------------------------------------
 
     private void PrintMatrixInConsole(){
-        int rows = mapMatrix.GetLength(1);
-        int cols = mapMatrix.GetLength(0);
+        int rows = mapMatrix.GetLength(0);
+        int cols = mapMatrix.GetLength(1);
 
         Debug.Log("Map Matrix:");
         for (int x = 0; x < rows; x++)
@@ -271,7 +272,7 @@ public class Astar : MonoBehaviour
             string line = "";
             for (int y = cols - 1; y >= 0; y--)
             {
-                line += mapMatrix[y, x] ? "1 " : "0 ";
+                line += mapMatrix[x, y] ? "1 " : "0 ";
             }
             Debug.Log(line);
         }
