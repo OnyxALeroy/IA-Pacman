@@ -4,24 +4,19 @@ using UnityEngine;
 public class _Pellet {
     public Vector3 position;
     public bool active;
-    public float timer;
     public int points;
     public bool is_power_pellet;
 
     public _Pellet(Vector3 position, bool active, bool is_power_pellet) {
         this.position = position;
         this.active = active;
-        this.timer = 0f;
         this.is_power_pellet = is_power_pellet;
     }
     public bool is_near(Vector3 pacman_position) {
         float distance = 0.5f;
         return active && Vector3.Distance(pacman_position, position) < distance;
     }
-    public void eat() {
-        active = false;
-        timer = 0f;
-    }
+    public void eat() { active = false; }
 }
 
 public class _Ghost {
@@ -29,16 +24,14 @@ public class _Ghost {
     public bool activated { get; set; }
     public float duration { get; set; }
     public float timer;
-    public bool is_ghost_feared;
     public Vector2 coord;
 
     // à changer s'il faut
     private Vector2 grid_center = new Vector2(13, -7);
 
-    public _Ghost(Vector3 position, int number, bool is_ghost_feared) {
+    public _Ghost(Vector3 position, int number) {
         this.position = position;
         this.timer = 0f;
-        this.is_ghost_feared = is_ghost_feared;
         switch (number) {
             case 0:
                 this.duration = 0.0f;
@@ -74,10 +67,12 @@ public class _Ghost {
 
 public class GameState {
     public Vector3 pacman_position { get; set; }
+	public float fright_timer;
     public LayerMask obstacle_layer { get; set; }
     public List<_Ghost> ghosts { get; set; }
     public Dictionary<Vector3Int, _Pellet> pellets = new Dictionary<Vector3Int, _Pellet>();
     public int score;
+	public bool is_frightened;
 
     public GameState(Vector3 pacman_position, LayerMask obstacle_layer, List<_Ghost> ghosts,
                      Dictionary<Vector3Int, _Pellet> pellets, int score) {
@@ -86,6 +81,9 @@ public class GameState {
         this.ghosts = ghosts;
         this.pellets = pellets;
         this.score = score;
+		this.fright_timer = 0f;
+		this.fright_timer = 0f;
+		this.is_frightened = false;
     }
 
     public GameState clone() { return new GameState(pacman_position, obstacle_layer, ghosts, pellets, score); }

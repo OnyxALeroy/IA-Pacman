@@ -16,8 +16,7 @@ public class MonteCarlo : MonoBehaviour {
     private MonteCarloNode current_node;
     private float timer = 0f;
 
-    // TODO: timer to spawn pellets, class for if it is active or not
-    // respawn ghosts if they are dead
+    // TODO: respawn ghosts if they are dead
     void Start() { InitializeRoot(pacman.transform.position); }
     void Update() {
         foreach (_Ghost ghost in root.game_state.ghosts) {
@@ -57,7 +56,7 @@ public class MonteCarlo : MonoBehaviour {
         // TODO: vérifier si le pacman ne mange pas de pellets
         MonteCarloNode new_node = new MonteCarloNode(move, node, 0.0f, new_game_state);
         move_ghosts(new_game_state);
-        // TODO: vérifier si le pacman ne s'est pas fait manger?
+        check_pellet_position(new_game_state);
         node.children[move] = new_node;
         return new_node;
     }
@@ -109,17 +108,24 @@ public class MonteCarlo : MonoBehaviour {
             current_position += new Vector3(random_move.x, random_move.y, 0);
             game_state.pacman_position = current_position;
             move_ghosts(game_state);
-            Vector3Int pacman_position_int = Vector3Int.RoundToInt(game_state.pacman_position);
-            Dictionary<Vector3Int, _Pellet> pellets = game_state.pellets;
-
-            if (pellets.ContainsKey(pacman_position_int) && pellets[pacman_position_int].active) {
-                pellets[pacman_position_int].eat();
-                game_state.score += pellets[pacman_position_int].points;
-            }
-            // TODO: gérér les respawn des pellets
+            check_pellet_position(game_state);
             reward += evaluator.Evaluate(game_state);
         }
         return reward;
+    }
+    private void check_pellet_position(GameState game_state) {
+        Vector3Int pacman_position_int = Vector3Int.RoundToInt(game_state.pacman_position);
+        Dictionary<Vector3Int, _Pellet> pellets = game_state.pellets;
+
+        if (pellets.ContainsKey(pacman_position_int) && pellets[pacman_position_int].active) {
+            pellets[pacman_position_int].eat();
+            game_state.score += pellets[pacman_position_int].points;
+			if (pellets[pacman_position_int].is_power_pellet){
+				game_state.is_frightened = true;
+				// TODO: à commencer à tiquer le timer
+				// et à remettre l'état à false après un certain temps
+			}
+        }
     }
     private void move_ghosts(GameState game_state) {
         foreach (var ghost in game_state.ghosts) {
@@ -171,19 +177,13 @@ public class MonteCarlo : MonoBehaviour {
         List<_Ghost> _ghosts = new List<_Ghost>();
         for (int i = 0; i < ghosts.Length; i++) {
             Vector3 ghost_position;
-            bool is_ghost_feared;
             if (ghosts[i] != null && ghosts[i].gameObject.activeInHierarchy) {
                 ghost_position = ghosts[i].transform.position;
             } else {
                 ghost_position = Vector3.negativeInfinity;
             }
-            if (ghosts[i].feared) {
-                is_ghost_feared = true;
-            } else {
-                is_ghost_feared = false;
-            }
 
-            _Ghost _ghost = new _Ghost(ghost_position, i, is_ghost_feared);
+            _Ghost _ghost = new _Ghost(ghost_position, i);
             _ghosts.Add(_ghost);
         }
         Transform pellets = game_manager.pellets;
