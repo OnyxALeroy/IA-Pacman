@@ -36,19 +36,15 @@ public class _Ghost {
             case 0:
                 this.duration = 0.0f;
                 this.activated = true;
-                this.coord = grid_center;
                 break;
             case 1:
                 this.duration = 15.0f;
-                this.coord = grid_center + new Vector2(-1, -1);
                 break;
             case 2:
                 this.duration = 20.0f;
-                this.coord = grid_center + new Vector2(1, -1);
                 break;
             case 3:
                 this.duration = 25.0f;
-                this.coord = grid_center + new Vector2(0, -1);
                 break;
             default:
                 this.duration = 0;
@@ -70,12 +66,12 @@ public class GameState {
 	public float fright_timer;
     public LayerMask obstacle_layer { get; set; }
     public List<_Ghost> ghosts { get; set; }
-    public Dictionary<Vector3Int, _Pellet> pellets = new Dictionary<Vector3Int, _Pellet>();
+    public Dictionary<Vector2Int, _Pellet> pellets = new Dictionary<Vector2Int, _Pellet>();
     public int score;
 	public bool is_frightened;
 
     public GameState(Vector3 pacman_position, LayerMask obstacle_layer, List<_Ghost> ghosts,
-                     Dictionary<Vector3Int, _Pellet> pellets, int score) {
+                     Dictionary<Vector2Int, _Pellet> pellets, int score) {
         this.pacman_position = pacman_position;
         this.obstacle_layer = obstacle_layer;
         this.ghosts = ghosts;

@@ -9,7 +9,7 @@ public class Pacman : MonoBehaviour {
   [SerializeField]
   MonteCarlo monteCarlo;
   private bool isMoving = false;
-  float move_delay = 0.2f;
+  float move_delay = 0.1f;
   float tile_size = 1.0f;
 
   [SerializeField]
@@ -32,7 +32,7 @@ public class Pacman : MonoBehaviour {
       Vector2 direction = monteCarlo.GetBestDirection(this.transform.position);
       // monteCarlo.print_tree();
       this.movement.SetDirection(direction);
-      Debug.Log("AI Direction: " + direction);
+      // Debug.Log("AI Direction: " + direction);
       if (direction != Vector2.zero) {
         StartCoroutine(MoveOneTile(direction));
       }
@@ -84,7 +84,7 @@ public class Pacman : MonoBehaviour {
     }
 
     gameObject.SetActive(true);
-    Debug.Log("Pacman Reset State");
+    // Debug.Log("Pacman Reset State");
     isMoving = false;
   }
 }

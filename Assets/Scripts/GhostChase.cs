@@ -5,13 +5,13 @@ public class GhostChase : GhostBehaviour
 
     private void OnEnable()
     {
-        Debug.Log("Chase enabled");
+        // Debug.Log("Chase enabled");
     }
 
     private void OnDisable()
     {
         this.ghost.scatter.Enable();
-        Debug.Log("Chase disabled");
+        // Debug.Log("Chase disabled");
     }
 
 

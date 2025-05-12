@@ -84,7 +84,7 @@ public class TilemapDebugger : MonoBehaviour
             {
                 row += matrix[x, y] ? "1 " : "0 ";
             }
-            Debug.Log(row);
+            // Debug.Log(row);
         }
     }
 
@@ -99,13 +99,13 @@ public class TilemapDebugger : MonoBehaviour
                 transposedWalkableMatrix[walkableMatrix.GetLength(1) - y - 1, x] = walkableMatrix[x, y];
             }
         }
-        Debug.Log("Transposable Walkable Matrix =");
+        // Debug.Log("Transposable Walkable Matrix =");
         for (int x = 0; x < transposedWalkableMatrix.GetLength(0); x++){
             string row = "";
             for (int y = 0; y < transposedWalkableMatrix.GetLength(1); y++){
                 row += transposedWalkableMatrix[x, y] ? "1 " : "0 ";
             }
-            Debug.Log(row);
+            // Debug.Log(row);
         }
     }
 }

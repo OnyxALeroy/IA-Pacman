@@ -59,6 +59,7 @@ public class Evaluator : MonoBehaviour
     // Evaluation function -------------------------------------------------------------------------------------------------
 
     public float Evaluate(GameState gameState){
+		// Debug.Log($"{PelletRemainingEvaluation(gameState)}, {DistanceToNearestPelletEvaluation(gameState)}, {GhostDangerEvaluation(gameState)}, {ScoreEvaluation(gameState)}");
         return PelletRemainingEvaluation(gameState) + DistanceToNearestPelletEvaluation(gameState)
             + GhostDangerEvaluation(gameState) + ScoreEvaluation(gameState);
     }

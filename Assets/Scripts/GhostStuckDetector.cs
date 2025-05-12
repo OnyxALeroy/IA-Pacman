@@ -46,7 +46,7 @@ public class GhostStuckDetector : MonoBehaviour
 
     private void ForceChangeDirection()
     {
-        Debug.Log("Ghost is stuck! Forcing direction change.");
+        // Debug.Log("Ghost is stuck! Forcing direction change.");
 
         // Get the available directions from the ghost's current position
         Node currentNode = GetCurrentNode();

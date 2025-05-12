@@ -5,12 +5,12 @@ public class GhostScatter : GhostBehaviour
 
     private void OnEnable()
     {
-        Debug.Log("Scatter enabled");
+        // Debug.Log("Scatter enabled");
     }   
     private void OnDisable()
     {
         this.ghost.chase.Enable();
-        Debug.Log("Scatter disabled");
+        // Debug.Log("Scatter disabled");
     }
 
     private void OnTriggerEnter2D(Collider2D other)

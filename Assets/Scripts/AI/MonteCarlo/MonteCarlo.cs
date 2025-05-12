@@ -9,8 +9,9 @@ public class MonteCarlo : MonoBehaviour {
     GameManager game_manager;
     [SerializeField]
     Evaluator evaluator;
+	[SerializeField] GridLayout grid_map;
 
-    private const int iterations_nb = 100;
+    private const int iterations_nb = 1;
     private const int simulation_depth = 10;
     MonteCarloNode root;
     private MonteCarloNode current_node;
@@ -109,17 +110,31 @@ public class MonteCarlo : MonoBehaviour {
             move_ghosts(game_state);
             check_pellet_position(game_state);
             reward += evaluator.Evaluate(game_state);
+			Debug.Log($"the evaluator gives: {evaluator.Evaluate(game_state)}");
+			Debug.Log($"the reward is: {reward}");
         }
         return reward;
     }
     private void check_pellet_position(GameState game_state) {
         Vector3Int pacman_position_int = Vector3Int.RoundToInt(game_state.pacman_position);
-        Dictionary<Vector3Int, _Pellet> pellets = game_state.pellets;
+        Dictionary<Vector2Int, _Pellet> pellets = game_state.pellets;
+		// TODO: gérér ça car le timer pas actif pour l'ins
+		string res = "";
+		Debug.Log(res);
+		Vector2Int pacman_position_int_2d = new Vector2Int(pacman_position_int.x, pacman_position_int.y);
+		res += $"pacman position int: {pacman_position_int_2d}";
 
-        if (pellets.ContainsKey(pacman_position_int) && pellets[pacman_position_int].active) {
-            pellets[pacman_position_int].eat();
-            game_state.score += pellets[pacman_position_int].points;
-			if (pellets[pacman_position_int].is_power_pellet){
+		foreach (var pellet in pellets.Keys){
+			res += $"({pellet})";
+		}
+		Debug.Log(res);
+
+
+        if (pellets.ContainsKey(pacman_position_int_2d) && pellets[pacman_position_int_2d].active) {
+			Debug.Log("ZZZZZZZZZZZZZZZZZZ");
+            pellets[pacman_position_int_2d].eat();
+            game_state.score += pellets[pacman_position_int_2d].points;
+			if (pellets[pacman_position_int_2d].is_power_pellet){
 				game_state.is_frightened = true;
 				// TODO: à commencer à tiquer le timer
 				// et à remettre l'état à false après un certain temps
@@ -150,7 +165,7 @@ public class MonteCarlo : MonoBehaviour {
         foreach (var el in root.children) {
             Vector2 direction = el.Key;
             MonteCarloNode child = el.Value;
-            if (child.average_reward > max_reward) {
+            if (child.average_reward >= max_reward) {
                 max_reward = child.average_reward;
                 best_move = direction;
             }
@@ -172,6 +187,9 @@ public class MonteCarlo : MonoBehaviour {
     }
 
     public void InitializeRoot(Vector3 pacmanPosition) {
+		Vector3 world_pos = pacmanPosition;
+		Vector3Int cell_pos = grid_map.WorldToCell(world_pos);
+		// Debug.Log($"BBBBBBBBBBBBBBBBB {cell_pos}");
         Ghost[] ghosts = game_manager.ghosts;
         List<_Ghost> _ghosts = new List<_Ghost>();
         for (int i = 0; i < ghosts.Length; i++) {
@@ -181,22 +199,29 @@ public class MonteCarlo : MonoBehaviour {
             } else {
                 ghost_position = Vector3.negativeInfinity;
             }
+			Vector3 ghost_pos = ghosts[i].transform.position;
+			Vector3Int ghost_cell_pos = grid_map.WorldToCell(ghost_pos);
 
             _Ghost _ghost = new _Ghost(ghost_position, i);
+			_ghost.coord = new Vector2(ghost_cell_pos.x, ghost_cell_pos.y);
+			// Debug.Log($"AAAAAAAAA: {_ghost.coord}, {i}");
+
             _ghosts.Add(_ghost);
         }
         Transform pellets = game_manager.pellets;
-        Dictionary<Vector3Int, _Pellet> _pellets = new Dictionary<Vector3Int, _Pellet>();
+        Dictionary<Vector2Int, _Pellet> _pellets = new Dictionary<Vector2Int, _Pellet>();
         foreach (Transform pellet in pellets) {
             Vector3Int key = Vector3Int.RoundToInt(pellet.position);
+			Vector2Int key_int = new Vector2Int(key.x, key.y);
             bool is_power_pellet;
-            Debug.Log(pellet.GetComponent<Pellet>());
+            // Debug.Log(pellet.GetComponent<Pellet>());
             if (pellet.GetComponent<Pellet>() is PowerPellet) {
                 is_power_pellet = true;
             } else {
                 is_power_pellet = false;
             }
-            _pellets[key] = new _Pellet(pellet.position, pellet.gameObject.activeInHierarchy, is_power_pellet);
+            // _pellets[key] = new _Pellet(pellet.position, pellet.gameObject.activeInHierarchy, is_power_pellet);
+            _pellets[key_int] = new _Pellet(pellet.position, pellet.gameObject.activeInHierarchy, is_power_pellet);
         }
 
         GameState game_state = new GameState(pacmanPosition, pacman.movement.obstacleLayer, _ghosts, _pellets, 0);
