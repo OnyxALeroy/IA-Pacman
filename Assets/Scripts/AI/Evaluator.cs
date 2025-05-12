@@ -24,7 +24,7 @@ public class Evaluator : MonoBehaviour
         int distance = int.MaxValue;
         foreach (Vector2Int pelletCoord in gameManager.pelletCoords.Keys){
             if (gameManager.pelletCoords[pelletCoord].gameObject.activeSelf){
-                astar.setNewDestination(pelletCoord.x, pelletCoord.y);
+                astar.setNewDestination((int)-gameState.pacman_position.y, (int)gameState.pacman_position.x, pelletCoord.x, pelletCoord.y);
                 if (astar.CurrentPath.Count < distance){ distance = astar.CurrentPath.Count; }
             }
         }
@@ -39,7 +39,7 @@ public class Evaluator : MonoBehaviour
 
         foreach (_Ghost g in gameState.ghosts){
             if (g.activated){
-                astar.setNewDestination((int)-g.coord.y, (int)g.coord.x, false);
+                astar.setNewDestination((int)-gameState.pacman_position.y, (int)gameState.pacman_position.x, (int)-g.coord.y, (int)g.coord.x, false);
                 int distance = astar.CurrentPath.Count;
                 if (g.is_ghost_feared){ 
                     score += delta / (1 + distance);

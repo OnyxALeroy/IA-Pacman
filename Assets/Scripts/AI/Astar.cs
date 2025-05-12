@@ -13,9 +13,11 @@ public class Astar : MonoBehaviour
     [SerializeField] List<Ghost> ghosts = new List<Ghost>();
     [SerializeField] bool doPathConsiderGhosts = true;
     [SerializeField] bool canUserInteract = false;
+    [SerializeField] bool drawPaths = false;
     [SerializeField] bool debugMode = false;
 
     // A* components
+    public (int, int) currentStart;
     public (int, int) currentDestination;
     private Queue<(int, int)> currentPath = new Queue<(int, int)>();
     private bool hasDestinationChanged = false;
@@ -56,22 +58,23 @@ public class Astar : MonoBehaviour
     }
 
     void Start(){
-        if (debugMode){ InitializeLineRenderers(); }
+        if (drawPaths){ InitializeLineRenderers(); }
 
         mapDebugger.StartTilemapDebugger();
         mapMatrix = mapDebugger.transposedWalkableMatrix;
         if (debugMode) { PrintMatrixInConsole(); }
 
-        mapGraph = GraphBuilder.BuildGraph(mapMatrix, debugMode);
+        mapGraph = GraphBuilder.BuildGraph(mapMatrix, drawPaths);
         GraphBuilder.DrawGraph(mapGraph, tilemap);
-        setNewDestination(GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2);
+        setNewDestination(GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2, GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2);
         hasDestinationChanged = true;
         Debug.Log($"Default destination set: {currentDestination}");
     }
 
     // --------------------------------------------------------------------------------------------
 
-    public void setNewDestination(int targetX, int targetY, bool doConsiderGhosts = false){
+    public void setNewDestination(int startX, int startY, int targetX, int targetY, bool doConsiderGhosts = false){
+        currentStart = (startX, startY);
         currentDestination = (targetX, targetY);
         Debug.Log($"Attempting to go to ({targetX}, {targetY}), with MapMatrix={mapMatrix[targetX, targetY]}");
         hasDestinationChanged = true;
@@ -91,7 +94,7 @@ public class Astar : MonoBehaviour
             // Check if this is a valid tile and set it as destination
             if (!mapMatrix[x, y])
             {
-                setNewDestination(x, y, doPathConsiderGhosts);
+                setNewDestination(GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2, x, y, doPathConsiderGhosts);
                 Debug.Log($"New destination set: {currentDestination}");
             }
             else
@@ -107,7 +110,7 @@ public class Astar : MonoBehaviour
 
             hasDestinationChanged = false;
 
-            if (debugMode){
+            if (drawPaths){
                 Debug.Log($"Path calculation complete. Path count: {currentPath.Count}");
                 string pathPoints = "Path points: ";
                 foreach (var point in currentPath)
@@ -150,8 +153,6 @@ public class Astar : MonoBehaviour
 
     public Queue<(int, int)> FindShortestPath(bool doConsiderGhosts)
     {
-        (int, int) initialPosition = GetPacmanPositionInGrid();
-
         // Check if destination is valid
         if (mapMatrix[currentDestination.Item1, currentDestination.Item2])
         {
@@ -178,9 +179,9 @@ public class Astar : MonoBehaviour
         }
 
         // Check if the initial position and destination are in the graph
-        if (!graph.edges.ContainsKey(initialPosition))
+        if (!graph.edges.ContainsKey(currentStart))
         {
-            Debug.LogError($"Initial position {initialPosition} is not in the graph!");
+            Debug.LogError($"Initial position {currentStart} is not in the graph!");
             return new Queue<(int, int)>();
         }
         
@@ -191,7 +192,7 @@ public class Astar : MonoBehaviour
         }
 
         // Priority queue would be better but we'll use a list
-        List<(int, int)> openSet = new List<(int, int)>{ initialPosition };
+        List<(int, int)> openSet = new List<(int, int)>{ currentStart };
         HashSet<(int, int)> closedSet = new HashSet<(int, int)>();
         
         // Track the path with a previous node dictionary
@@ -199,11 +200,11 @@ public class Astar : MonoBehaviour
         
         // Cost from start to each node
         Dictionary<(int, int), int> gScore = new Dictionary<(int, int), int>();
-        gScore[initialPosition] = 0;
+        gScore[currentStart] = 0;
         
         // Estimated total cost from start to goal through each node
         Dictionary<(int, int), int> fScore = new Dictionary<(int, int), int>();
-        fScore[initialPosition] = CalculateHeuristic(initialPosition, currentDestination);
+        fScore[currentStart] = CalculateHeuristic(currentStart, currentDestination);
         
         while (openSet.Count > 0)
         {
@@ -336,9 +337,10 @@ public class Astar : MonoBehaviour
         
         // Convert to queue
         Queue<(int, int)> result = new Queue<(int, int)>();
-        foreach (var node in path)
+        foreach (var node in path){
             result.Enqueue(node);
-            
+        }
+
         return result;
     }
 

@@ -68,6 +68,20 @@ public class GraphBuilder{
             }
         }
 
+        // Adding map folding
+        for (int i = 0; i < matrix.GetLength(0); i++){
+            if (!matrix[i, 0] && !matrix[i, matrix.GetLength(1) - 1]){
+                edges[(i, 0)].Add((i, matrix.GetLength(1) - 1));
+                edges[(i, matrix.GetLength(1) - 1)].Add((i, 0));
+            }
+        }
+        for (int j = 0; j < matrix.GetLength(1); j++){
+            if (!matrix[0, j] && !matrix[matrix.GetLength(0) - 1, j]){
+                edges[(0, j)].Add((matrix.GetLength(0) - 1, j));
+                edges[(matrix.GetLength(0) - 1, j)].Add((0, j));
+            }
+        }
+
         g.edges = edges;
 
         if (showDebug){
