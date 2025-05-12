@@ -41,7 +41,7 @@ public class Evaluator : MonoBehaviour
             if (g.activated){
                 astar.setNewDestination((int)-g.coord.y, (int)g.coord.x);
                 int distance = astar.CurrentPath.Count;
-                if (g.is_ghost_feared){ 
+                if (gameState.is_frightened){ 
                     score += delta / (1 + distance);
                 } else {
                     score -= gamma / (1 + distance);

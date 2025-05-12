@@ -14,7 +14,6 @@ public class MonteCarlo : MonoBehaviour {
     private const int simulation_depth = 10;
     MonteCarloNode root;
     private MonteCarloNode current_node;
-    private float timer = 0f;
 
     // TODO: respawn ghosts if they are dead
     void Start() { InitializeRoot(pacman.transform.position); }
