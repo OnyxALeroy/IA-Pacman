@@ -39,7 +39,8 @@ public class Evaluator : MonoBehaviour
 
         foreach (_Ghost g in gameState.ghosts){
             if (g.activated){
-                float distance = Vector3.Distance(pacmanPosition, g.position);
+                astar.setNewDestination((int)-g.coord.y, (int)g.coord.x);
+                int distance = astar.CurrentPath.Count;
                 if (g.is_ghost_feared){ 
                     score += delta / (1 + distance);
                 } else {
