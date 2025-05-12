@@ -10,6 +10,8 @@ public class Astar : MonoBehaviour
     [SerializeField] TilemapDebugger mapDebugger;
     [SerializeField] PacmanCoord pacmanCoord;
     [SerializeField] Pacman pacman;
+    [SerializeField] List<Ghost> ghosts = new List<Ghost>();
+    [SerializeField] bool doPathConsiderGhosts = true;
     [SerializeField] bool canUserInteract = false;
     [SerializeField] bool debugMode = false;
 
@@ -69,11 +71,11 @@ public class Astar : MonoBehaviour
 
     // --------------------------------------------------------------------------------------------
 
-    public void setNewDestination(int targetX, int targetY){
+    public void setNewDestination(int targetX, int targetY, bool doConsiderGhosts = false){
         currentDestination = (targetX, targetY);
         Debug.Log($"Attempting to go to ({targetX}, {targetY}), with MapMatrix={mapMatrix[targetX, targetY]}");
         hasDestinationChanged = true;
-        currentPath = FindShortestPath();
+        currentPath = FindShortestPath(doConsiderGhosts);
     }
 
     void Update(){
@@ -89,7 +91,7 @@ public class Astar : MonoBehaviour
             // Check if this is a valid tile and set it as destination
             if (!mapMatrix[x, y])
             {
-                setNewDestination(x, y);
+                setNewDestination(x, y, doPathConsiderGhosts);
                 Debug.Log($"New destination set: {currentDestination}");
             }
             else
@@ -146,7 +148,7 @@ public class Astar : MonoBehaviour
         return Math.Abs(node.Item1 - goal.Item1) + Math.Abs(node.Item2 - goal.Item2);
     }
 
-    public Queue<(int, int)> FindShortestPath()
+    public Queue<(int, int)> FindShortestPath(bool doConsiderGhosts)
     {
         (int, int) initialPosition = GetPacmanPositionInGrid();
 
@@ -157,14 +159,32 @@ public class Astar : MonoBehaviour
             return new Queue<(int, int)>();
         }
 
+        // If considering Ghosts, removing their position from the graph
+        Graph<(int, int)> graph = mapGraph.DeepCopy();
+        if (doConsiderGhosts){
+            foreach (Ghost ghost in ghosts){
+                Vector3Int ghostCoords = tilemap.WorldToCell(ghost.transform.position);
+                (int, int) ghostPosInGrid = (-ghostCoords.y, ghostCoords.x);
+
+                if (graph.edges.ContainsKey(ghostPosInGrid)){
+                    graph.edges.Remove(ghostPosInGrid);
+                }
+                foreach ((int, int) key in graph.edges.Keys){
+                    if (graph.edges[key].Contains(ghostPosInGrid)){
+                        graph.edges[key].Remove(ghostPosInGrid);
+                    }
+                }
+            }
+        }
+
         // Check if the initial position and destination are in the graph
-        if (!mapGraph.edges.ContainsKey(initialPosition))
+        if (!graph.edges.ContainsKey(initialPosition))
         {
             Debug.LogError($"Initial position {initialPosition} is not in the graph!");
             return new Queue<(int, int)>();
         }
         
-        if (!mapGraph.edges.ContainsKey(currentDestination))
+        if (!graph.edges.ContainsKey(currentDestination))
         {
             Debug.LogError($"Destination {currentDestination} is not in the graph!");
             return new Queue<(int, int)>();
@@ -198,21 +218,21 @@ public class Astar : MonoBehaviour
             {
                 if (debugMode)
                     Debug.Log("Found path to destination!");
-                return ReconstructPath(cameFrom, current);
+                return ReconstructPath(cameFrom, current, graph);
             }
             
             openSet.Remove(current);
             closedSet.Add(current);
             
             // Make sure this node exists in the graph
-            if (!mapGraph.edges.ContainsKey(current))
+            if (!graph.edges.ContainsKey(current))
             {
                 Debug.LogError($"Node {current} not found in graph during A* search!");
                 continue;
             }
             
             // Check each neighbor
-            foreach (var neighbor in mapGraph.edges[current])
+            foreach (var neighbor in graph.edges[current])
             {
                 // Skip if already evaluated
                 if (closedSet.Contains(neighbor))
@@ -280,7 +300,7 @@ public class Astar : MonoBehaviour
     }
 
     // Reconstruct path from destination back to start
-    private Queue<(int, int)> ReconstructPath(Dictionary<(int, int), (int, int)> cameFrom, (int, int) current)
+    private Queue<(int, int)> ReconstructPath(Dictionary<(int, int), (int, int)> cameFrom, (int, int) current, Graph<(int, int)> graph)
     {
         // Build path in reverse
         List<(int, int)> path = new List<(int, int)>();
@@ -291,7 +311,7 @@ public class Astar : MonoBehaviour
             (int, int) previous = cameFrom[current];
             
             // Double check that this edge exists in the graph
-            if (!mapGraph.edges.ContainsKey(previous) || !mapGraph.edges[previous].Contains(current))
+            if (!graph.edges.ContainsKey(previous) || !graph.edges[previous].Contains(current))
             {
                 Debug.LogError($"Invalid path step! No edge between {previous} and {current}");
                 // We could break here, but let's continue to see the full problematic path
@@ -320,53 +340,6 @@ public class Astar : MonoBehaviour
             result.Enqueue(node);
             
         return result;
-    }
-
-
-    private Queue<(int, int)> ValidateAndRebuildPath((int, int) pathDestination, Dictionary<(int, int), (int, int)> fathers){
-        Queue<(int, int)> path = new Queue<(int, int)>();
-        List<(int, int)> pathNodes = new List<(int, int)>();
-        (int, int) node = pathDestination;
-        
-        // Building the path node by node (in reverse)
-        while(fathers.ContainsKey(node)){
-            pathNodes.Add(node);
-            node = fathers[node];
-        }
-        
-        // Reverse the path nodes
-        pathNodes.Reverse();
-        
-        // Validate each step in the path - there must be an edge between consecutive nodes
-        (int, int) prevNode = node; // This is our starting point, which wasn't added to pathNodes
-        bool pathIsValid = true;
-        
-        foreach (var currentNode in pathNodes)
-        {
-            // Check if there's an edge from prevNode to currentNode
-            if (!mapGraph.edges.ContainsKey(prevNode) || !mapGraph.edges[prevNode].Contains(currentNode))
-            {
-                Debug.LogError($"Invalid path step! No edge between {prevNode} and {currentNode}");
-                pathIsValid = false;
-                break;
-            }
-            
-            prevNode = currentNode;
-        }
-        
-        if (!pathIsValid)
-        {
-            Debug.LogError("Path validation failed! The path contains invalid edges.");
-            return new Queue<(int, int)>();
-        }
-        
-        // If path is valid, rebuild it as a queue
-        foreach (var step in pathNodes)
-        {
-            path.Enqueue(step);
-        }
-        
-        return path;
     }
 
     // --------------------------------------------------------------------------------------------

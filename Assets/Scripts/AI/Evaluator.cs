@@ -5,11 +5,11 @@ public class Evaluator : MonoBehaviour
 {
     [SerializeField] GameManager gameManager;
     [SerializeField] Astar astar;
-    [SerializeField] float alpha = 1.0f;
-    [SerializeField] float beta = 1.0f;
-    [SerializeField] float gamma = 1.0f;
-    [SerializeField] float delta = 1.0f;
-    [SerializeField] float epsilon = 1.0f;
+    [Tooltip("PelletRemainingEvaluation")] [SerializeField] float alpha = 1.0f;
+    [Tooltip("DistanceToNearestPelletEvaluation")] [SerializeField] float beta = 1.0f;
+    [Tooltip("NotAfraidGhostDistance")] [SerializeField] float gamma = 1.0f;
+    [Tooltip("AfraidGhostDistance")] [SerializeField] float delta = 1.0f;
+    [Tooltip("ScoreEvaluation")] [SerializeField] float epsilon = 1.0f;
 
     // Components ----------------------------------------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ public class Evaluator : MonoBehaviour
 
         foreach (_Ghost g in gameState.ghosts){
             if (g.activated){
-                astar.setNewDestination((int)-g.coord.y, (int)g.coord.x);
+                astar.setNewDestination((int)-g.coord.y, (int)g.coord.x, false);
                 int distance = astar.CurrentPath.Count;
                 if (g.is_ghost_feared){ 
                     score += delta / (1 + distance);

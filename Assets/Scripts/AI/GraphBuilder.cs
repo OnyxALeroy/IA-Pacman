@@ -14,6 +14,20 @@ public class Graph<Location>
     {
         return edges[id];
     }
+    
+    // ---------------------------------------------------------------------------------------------------------------------
+
+    public Graph<Location> DeepCopy(){
+        Graph<Location> g = new Graph<Location>();
+        
+        Dictionary<Location, List<Location>> newEdges = new Dictionary<Location, List<Location>>();
+        foreach (Location key in edges.Keys){
+            newEdges[key] = edges[key];
+        }
+
+        g.edges = newEdges;
+        return g;
+    }
 };
 
 // ------------------------------------------------------------------------------------------------

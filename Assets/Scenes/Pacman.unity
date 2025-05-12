@@ -1550,8 +1550,13 @@ MonoBehaviour:
   mapDebugger: {fileID: 1223086349}
   pacmanCoord: {fileID: 525905807}
   pacman: {fileID: 1535157184}
-  canUserInteract: 0
-  debugMode: 0
+  ghosts:
+  - {fileID: 77599893}
+  - {fileID: 2099002810}
+  - {fileID: 1166765804}
+  - {fileID: 1667919384}
+  canUserInteract: 1
+  debugMode: 1
 --- !u!4 &525905809
 Transform:
   m_ObjectHideFlags: 0
@@ -4579,6 +4584,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1335676423}
+  - component: {fileID: 1335676425}
+  - component: {fileID: 1335676424}
   - component: {fileID: 1335676422}
   m_Layer: 0
   m_Name: Evaluator
@@ -4600,7 +4607,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameManager: {fileID: 1210685156}
-  astar: {fileID: 525905808}
+  astar: {fileID: 1335676424}
   alpha: 1
   beta: 1
   gamma: 1
@@ -4621,6 +4628,43 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1335676424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1335676421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bed6baab4de909b4199d85569d09aa94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tilemap: {fileID: 1203097368}
+  mapDebugger: {fileID: 1223086349}
+  pacmanCoord: {fileID: 1335676425}
+  pacman: {fileID: 1535157184}
+  ghosts:
+  - {fileID: 77599893}
+  - {fileID: 2099002810}
+  - {fileID: 1166765804}
+  - {fileID: 1667919384}
+  canUserInteract: 0
+  debugMode: 0
+--- !u!114 &1335676425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1335676421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e5f96fd11348c243a419868d1eea9f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pacman: {fileID: 1535157188}
+  tilemap: {fileID: 1203097368}
 --- !u!1 &1433129647
 GameObject:
   m_ObjectHideFlags: 0
