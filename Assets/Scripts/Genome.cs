@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class Genome
 {
-    private int inputSize = 7; // Example: Pacman's position, ghost positions, pellet positions, etc.
+    private int inputSize = 15; // Example: Pacman's position, ghost positions, pellet positions, etc.
     private int hiddenSize = 10; // Number of neurons in the hidden layer
     private int outputSize = 4; // Up, Down, Left, Right
     public float[,] weightsInputHidden;

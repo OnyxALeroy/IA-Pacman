@@ -67,32 +67,74 @@ public class PacmanBrain : Pacman
 
     private float[] GatherInputs()
     {
-        float[] inputs = new float[7];
+        float[] inputs = new float[15]; // Updated size to include power pellet inputs
 
         // Pacman's position (normalized)
         inputs[0] = this.transform.position.x / 10f; // Assuming the game area is roughly -10 to 10
         inputs[1] = this.transform.position.y / 10f;
 
-        // Closest ghost's position (normalized)
+        // Closest ghost's position (normalized) and direction
         Ghost closestGhost = FindClosestGhost();
         if (closestGhost != null)
         {
-            inputs[2] = (closestGhost.transform.position.x - this.transform.position.x) / 10f;
-            inputs[3] = (closestGhost.transform.position.y - this.transform.position.y) / 10f;
+            Vector2 relativeGhostPosition = closestGhost.transform.position - this.transform.position;
+            inputs[2] = relativeGhostPosition.x / 10f; // X distance
+            inputs[3] = relativeGhostPosition.y / 10f; // Y distance
+
+            // Direction to the closest ghost
+            inputs[4] = relativeGhostPosition.x < 0 ? -1f : 1f; // Left (-1) or Right (1)
+            inputs[5] = relativeGhostPosition.y < 0 ? -1f : 1f; // Bottom (-1) or Top (1)
         }
         else
         {
             inputs[2] = 0f;
             inputs[3] = 0f;
+            inputs[4] = 0f;
+            inputs[5] = 0f;
         }
 
-        // Distance to the nearest pellet (normalized)
-        inputs[4] = FindClosestPelletDistance() / 10f;
+        // Closest pellet's position (normalized) and direction
+        Vector2 closestPelletPosition = FindClosestPelletPosition();
+        if (closestPelletPosition != Vector2.zero)
+        {
+            Vector2 relativePelletPosition = closestPelletPosition - (Vector2)this.transform.position;
+            inputs[6] = relativePelletPosition.x / 10f; // X distance
+            inputs[7] = relativePelletPosition.y / 10f; // Y distance
 
-        // Distance to the nearest power pellet (normalized)
-        inputs[5] = FindClosestPowerPelletDistance()/10f;
+            // Direction to the closest pellet
+            inputs[8] = relativePelletPosition.x < 0 ? -1f : 1f; // Left (-1) or Right (1)
+            inputs[9] = relativePelletPosition.y < 0 ? -1f : 1f; // Bottom (-1) or Top (1)
+        }
+        else
+        {
+            inputs[6] = 0f;
+            inputs[7] = 0f;
+            inputs[8] = 0f;
+            inputs[9] = 0f;
+        }
 
-        inputs[6] = powerPelletActive;
+        // Closest power pellet's position (normalized) and direction
+        Vector2 closestPowerPelletPosition = FindClosestPowerPelletPosition();
+        if (closestPowerPelletPosition != Vector2.zero)
+        {
+            Vector2 relativePowerPelletPosition = closestPowerPelletPosition - (Vector2)this.transform.position;
+            inputs[10] = relativePowerPelletPosition.x / 10f; // X distance
+            inputs[11] = relativePowerPelletPosition.y / 10f; // Y distance
+
+            // Direction to the closest power pellet
+            inputs[12] = relativePowerPelletPosition.x < 0 ? -1f : 1f; // Left (-1) or Right (1)
+            inputs[13] = relativePowerPelletPosition.y < 0 ? -1f : 1f; // Bottom (-1) or Top (1)
+        }
+        else
+        {
+            inputs[10] = 0f;
+            inputs[11] = 0f;
+            inputs[12] = 0f;
+            inputs[13] = 0f;
+        }
+
+        // Power pellet active status
+        inputs[14] = powerPelletActive;
 
         return inputs;
     }
@@ -116,9 +158,10 @@ public class PacmanBrain : Pacman
         return closestGhost;
     }
 
-    private float FindClosestPelletDistance()
+    private Vector2 FindClosestPelletPosition()
     {
         float closestDistance = float.MaxValue;
+        Vector2 closestPelletPosition = Vector2.zero;
 
         foreach (Transform pellet in GameObject.Find("Pellets").transform)
         {
@@ -128,14 +171,37 @@ public class PacmanBrain : Pacman
                 if (distance < closestDistance)
                 {
                     closestDistance = distance;
+                    closestPelletPosition = pellet.position;
                 }
             }
         }
 
-        return closestDistance;
+        return closestPelletPosition;
     }
 
-        private float FindClosestPowerPelletDistance()
+    private Vector2 FindClosestPowerPelletPosition()
+    {
+        float closestDistance = float.MaxValue;
+        Vector2 closestPowerPelletPosition = Vector2.zero;
+
+        foreach (Transform pellet in GameObject.Find("Pellets").transform)
+        {
+            PowerPellet powerPellet = pellet.GetComponent<PowerPellet>();
+            if (pellet.gameObject.activeSelf && powerPellet != null)
+            {
+                float distance = Vector2.Distance(this.transform.position, pellet.position);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestPowerPelletPosition = pellet.position;
+                }
+            }
+        }
+
+        return closestPowerPelletPosition;
+    }
+
+    private float FindClosestPowerPelletDistance()
     {
         float closestDistance = float.MaxValue;
 
@@ -144,11 +210,11 @@ public class PacmanBrain : Pacman
             PowerPellet powerPellet = pellet.GetComponent<PowerPellet>();
             if (pellet.gameObject.activeSelf && powerPellet != null)
             {
-            float distance = Vector2.Distance(this.transform.position, pellet.position);
-            if (distance < closestDistance)
-            {
-                closestDistance = distance;
-            }
+                float distance = Vector2.Distance(this.transform.position, pellet.position);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                }
             }
         }
 

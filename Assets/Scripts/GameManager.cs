@@ -77,6 +77,7 @@ public class GameManager : MonoBehaviour
         this.pacman.SetLives(this.pacman.GetLives() - 1);
         if (this.pacman.GetLives() <= 0)
         {
+            this.pacman.SetScore(this.pacman.GetScore()*0.9f);
             GameOver();
         } else {
             this.pacman.SetScore(this.pacman.GetScore()*0.9f);

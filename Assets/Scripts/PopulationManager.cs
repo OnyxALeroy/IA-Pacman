@@ -161,7 +161,6 @@ public class PopulationManager : MonoBehaviour
             for (int j = i + 1; j < nbElite; j++)
             {
                 Genome child = population[i].Breed(population[j]);
-                child.Mutate(mutationRate);
                 newPopulation.Add(child);
             }
         }
