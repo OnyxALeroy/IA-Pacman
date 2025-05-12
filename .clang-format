@@ -1,0 +1,31 @@
+Language: CSharp
+BasedOnStyle: Microsoft
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+ColumnLimit: 120
+BreakBeforeBraces: Attach  # This will attach braces to the class or function declaration
+
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+
+SpacesBeforeTrailingComments: 1
+SpaceAfterCStyleCast: true
+
+KeepEmptyLinesAtTheStartOfBlocks: false
+IndentCaseLabels: true
+Cpp11BracedListStyle: true
+
+SortUsingDeclarations: true
+ReflowComments: true
+AlignTrailingComments: true
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+
+# Space before parentheses for control statements
+SpaceBeforeParens: ControlStatements
+BinPackParameters: true  # This will prevent wrapping parameters to new lines when possible
+

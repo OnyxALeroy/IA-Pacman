@@ -14,6 +14,20 @@ public class Graph<Location>
     {
         return edges[id];
     }
+    
+    // ---------------------------------------------------------------------------------------------------------------------
+
+    public Graph<Location> DeepCopy(){
+        Graph<Location> g = new Graph<Location>();
+        
+        Dictionary<Location, List<Location>> newEdges = new Dictionary<Location, List<Location>>();
+        foreach (Location key in edges.Keys){
+            newEdges[key] = edges[key];
+        }
+
+        g.edges = newEdges;
+        return g;
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -51,6 +65,20 @@ public class GraphBuilder{
 
                     edges[(i, j)] = neighbors;
                 }
+            }
+        }
+
+        // Adding map folding
+        for (int i = 0; i < matrix.GetLength(0); i++){
+            if (!matrix[i, 0] && !matrix[i, matrix.GetLength(1) - 1]){
+                edges[(i, 0)].Add((i, matrix.GetLength(1) - 1));
+                edges[(i, matrix.GetLength(1) - 1)].Add((i, 0));
+            }
+        }
+        for (int j = 0; j < matrix.GetLength(1); j++){
+            if (!matrix[0, j] && !matrix[matrix.GetLength(0) - 1, j]){
+                edges[(0, j)].Add((matrix.GetLength(0) - 1, j));
+                edges[(matrix.GetLength(0) - 1, j)].Add((0, j));
             }
         }
 

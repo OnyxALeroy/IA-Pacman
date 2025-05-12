@@ -10,10 +10,14 @@ public class Astar : MonoBehaviour
     [SerializeField] TilemapDebugger mapDebugger;
     [SerializeField] PacmanCoord pacmanCoord;
     [SerializeField] Pacman pacman;
+    [SerializeField] List<Ghost> ghosts = new List<Ghost>();
+    [SerializeField] bool doPathConsiderGhosts = true;
     [SerializeField] bool canUserInteract = false;
+    [SerializeField] bool drawPaths = false;
     [SerializeField] bool debugMode = false;
 
     // A* components
+    public (int, int) currentStart;
     public (int, int) currentDestination;
     private Queue<(int, int)> currentPath = new Queue<(int, int)>();
     private bool hasDestinationChanged = false;
@@ -54,27 +58,27 @@ public class Astar : MonoBehaviour
     }
 
     void Start(){
-        if (debugMode){ InitializeLineRenderers(); }
+        if (drawPaths){ InitializeLineRenderers(); }
 
         mapDebugger.StartTilemapDebugger();
         mapMatrix = mapDebugger.transposedWalkableMatrix;
         if (debugMode) { PrintMatrixInConsole(); }
 
-        mapGraph = GraphBuilder.BuildGraph(mapMatrix, debugMode);
+        mapGraph = GraphBuilder.BuildGraph(mapMatrix, drawPaths);
         GraphBuilder.DrawGraph(mapGraph, tilemap);
-        setNewDestination(GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2);
+        setNewDestination(GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2, GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2);
         hasDestinationChanged = true;
         Debug.Log($"Default destination set: {currentDestination}");
     }
 
     // --------------------------------------------------------------------------------------------
 
-    public void setNewDestination(int targetX, int targetY){
+    public void setNewDestination(int startX, int startY, int targetX, int targetY, bool doConsiderGhosts = false){
+        currentStart = (startX, startY);
         currentDestination = (targetX, targetY);
-        // Debug.Log($"Attempting to go to ({targetX}, {targetY})");
-        // Debug.Log($"Attempting to go to ({targetX}, {targetY}), with MapMatrix={mapMatrix[targetX, targetY]}");
+        Debug.Log($"Attempting to go to ({targetX}, {targetY}), with MapMatrix={mapMatrix[targetX, targetY]}");
         hasDestinationChanged = true;
-        currentPath = FindShortestPath();
+        currentPath = FindShortestPath(doConsiderGhosts);
     }
 
     void Update(){
@@ -82,7 +86,7 @@ public class Astar : MonoBehaviour
         {
             Vector3 world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector3Int cell = tilemap.WorldToCell(world);
-            // Debug.Log("Clicked tilemap cell: " + cell);
+            Debug.Log("Clicked tilemap cell: " + cell);
 
             // Convert the clicked cell to our grid coordinates
             (int y, int x) = (cell.x, -cell.y);
@@ -90,13 +94,13 @@ public class Astar : MonoBehaviour
             // Check if this is a valid tile and set it as destination
             if (!mapMatrix[x, y])
             {
-                setNewDestination(x, y);
-                // Debug.Log($"New destination set: {currentDestination}");
+                setNewDestination(GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2, x, y, doPathConsiderGhosts);
+                Debug.Log($"New destination set: {currentDestination}");
             }
             else
             {
-                // Debug.LogWarning($"Invalid destination at grid position ({x},{y})");
-                // Debug.LogWarning($"mapMatrix[x, y] = {mapMatrix[x, y]}");
+                Debug.LogWarning($"Invalid destination at grid position ({x},{y})");
+                Debug.LogWarning($"mapMatrix[x, y] = {mapMatrix[x, y]}");
             }
         }
 
@@ -106,14 +110,14 @@ public class Astar : MonoBehaviour
 
             hasDestinationChanged = false;
 
-            if (debugMode){
-                // Debug.Log($"Path calculation complete. Path count: {currentPath.Count}");
+            if (drawPaths){
+                Debug.Log($"Path calculation complete. Path count: {currentPath.Count}");
                 string pathPoints = "Path points: ";
                 foreach (var point in currentPath)
                 {
                     pathPoints += $"({point.Item1},{point.Item2}) ";
                 }
-                // Debug.Log(pathPoints);
+                Debug.Log(pathPoints);
 
                 Vector3 startingPosition = pacman.transform.position;
                 Vector3 endingPosition = GridToWorldPosition(currentDestination.Item2, currentDestination.Item1);
@@ -122,12 +126,12 @@ public class Astar : MonoBehaviour
 
                 if (currentPath.Count > 0)
                 {
-                    // Debug.Log($"Drawing path with {currentPath.Count} points");
+                    Debug.Log($"Drawing path with {currentPath.Count} points");
                     DrawAStarPath(new Queue<(int, int)>(currentPath));
                 }
                 else
                 {
-                    // Debug.LogWarning("No path found to draw");
+                    Debug.LogWarning("No path found to draw");
                 }
             }
         }
@@ -147,32 +151,48 @@ public class Astar : MonoBehaviour
         return Math.Abs(node.Item1 - goal.Item1) + Math.Abs(node.Item2 - goal.Item2);
     }
 
-    public Queue<(int, int)> FindShortestPath()
+    public Queue<(int, int)> FindShortestPath(bool doConsiderGhosts)
     {
-        (int, int) initialPosition = GetPacmanPositionInGrid();
-
         // Check if destination is valid
         if (mapMatrix[currentDestination.Item1, currentDestination.Item2])
         {
-            // Debug.LogError($"Destination {currentDestination} is not a valid tile!");
+            Debug.LogError($"Destination {currentDestination} is not a valid tile!");
             return new Queue<(int, int)>();
         }
 
+        // If considering Ghosts, removing their position from the graph
+        Graph<(int, int)> graph = mapGraph.DeepCopy();
+        if (doConsiderGhosts){
+            foreach (Ghost ghost in ghosts){
+                Vector3Int ghostCoords = tilemap.WorldToCell(ghost.transform.position);
+                (int, int) ghostPosInGrid = (-ghostCoords.y, ghostCoords.x);
+
+                if (graph.edges.ContainsKey(ghostPosInGrid)){
+                    graph.edges.Remove(ghostPosInGrid);
+                }
+                foreach ((int, int) key in graph.edges.Keys){
+                    if (graph.edges[key].Contains(ghostPosInGrid)){
+                        graph.edges[key].Remove(ghostPosInGrid);
+                    }
+                }
+            }
+        }
+
         // Check if the initial position and destination are in the graph
-        if (!mapGraph.edges.ContainsKey(initialPosition))
+        if (!graph.edges.ContainsKey(currentStart))
         {
-            // Debug.LogError($"Initial position {initialPosition} is not in the graph!");
+            Debug.LogError($"Initial position {currentStart} is not in the graph!");
             return new Queue<(int, int)>();
         }
         
-        if (!mapGraph.edges.ContainsKey(currentDestination))
+        if (!graph.edges.ContainsKey(currentDestination))
         {
-            // Debug.LogError($"Destination {currentDestination} is not in the graph!");
+            Debug.LogError($"Destination {currentDestination} is not in the graph!");
             return new Queue<(int, int)>();
         }
 
         // Priority queue would be better but we'll use a list
-        List<(int, int)> openSet = new List<(int, int)>{ initialPosition };
+        List<(int, int)> openSet = new List<(int, int)>{ currentStart };
         HashSet<(int, int)> closedSet = new HashSet<(int, int)>();
         
         // Track the path with a previous node dictionary
@@ -180,11 +200,11 @@ public class Astar : MonoBehaviour
         
         // Cost from start to each node
         Dictionary<(int, int), int> gScore = new Dictionary<(int, int), int>();
-        gScore[initialPosition] = 0;
+        gScore[currentStart] = 0;
         
         // Estimated total cost from start to goal through each node
         Dictionary<(int, int), int> fScore = new Dictionary<(int, int), int>();
-        fScore[initialPosition] = CalculateHeuristic(initialPosition, currentDestination);
+        fScore[currentStart] = CalculateHeuristic(currentStart, currentDestination);
         
         while (openSet.Count > 0)
         {
@@ -192,28 +212,28 @@ public class Astar : MonoBehaviour
             (int, int) current = GetLowestFScoreNode(openSet, fScore);
             
             if (debugMode)
-                // Debug.Log($"Evaluating node: ({current.Item1}, {current.Item2}) with fScore: {fScore[current]}");
+                Debug.Log($"Evaluating node: ({current.Item1}, {current.Item2}) with fScore: {fScore[current]}");
             
             // Check if we've reached the destination
             if (current.Equals(currentDestination))
             {
                 if (debugMode)
-                    // Debug.Log("Found path to destination!");
-                return ReconstructPath(cameFrom, current);
+                    Debug.Log("Found path to destination!");
+                return ReconstructPath(cameFrom, current, graph);
             }
             
             openSet.Remove(current);
             closedSet.Add(current);
             
             // Make sure this node exists in the graph
-            if (!mapGraph.edges.ContainsKey(current))
+            if (!graph.edges.ContainsKey(current))
             {
-                // Debug.LogError($"Node {current} not found in graph during A* search!");
+                Debug.LogError($"Node {current} not found in graph during A* search!");
                 continue;
             }
             
             // Check each neighbor
-            foreach (var neighbor in mapGraph.edges[current])
+            foreach (var neighbor in graph.edges[current])
             {
                 // Skip if already evaluated
                 if (closedSet.Contains(neighbor))
@@ -225,7 +245,7 @@ public class Astar : MonoBehaviour
                 
                 if (dX > 1 || dY > 1 || (dX == 1 && dY == 1))
                 {
-                    // Debug.LogWarning($"Skipping invalid edge: {current} -> {neighbor}, dX={dX}, dY={dY}");
+                    Debug.LogWarning($"Skipping invalid edge: {current} -> {neighbor}, dX={dX}, dY={dY}");
                     continue;
                 }
                 
@@ -254,7 +274,7 @@ public class Astar : MonoBehaviour
             }
         }
         
-        // Debug.LogWarning($"Could not find path to {currentDestination}");
+        Debug.LogWarning($"Could not find path to {currentDestination}");
         return new Queue<(int, int)>();
     }
 
@@ -281,7 +301,7 @@ public class Astar : MonoBehaviour
     }
 
     // Reconstruct path from destination back to start
-    private Queue<(int, int)> ReconstructPath(Dictionary<(int, int), (int, int)> cameFrom, (int, int) current)
+    private Queue<(int, int)> ReconstructPath(Dictionary<(int, int), (int, int)> cameFrom, (int, int) current, Graph<(int, int)> graph)
     {
         // Build path in reverse
         List<(int, int)> path = new List<(int, int)>();
@@ -292,9 +312,9 @@ public class Astar : MonoBehaviour
             (int, int) previous = cameFrom[current];
             
             // Double check that this edge exists in the graph
-            if (!mapGraph.edges.ContainsKey(previous) || !mapGraph.edges[previous].Contains(current))
+            if (!graph.edges.ContainsKey(previous) || !graph.edges[previous].Contains(current))
             {
-                // Debug.LogError($"Invalid path step! No edge between {previous} and {current}");
+                Debug.LogError($"Invalid path step! No edge between {previous} and {current}");
                 // We could break here, but let's continue to see the full problematic path
             }
             
@@ -308,73 +328,27 @@ public class Astar : MonoBehaviour
         
         if (debugMode)
         {
-            // Debug.Log($"Path created with {path.Count} steps");
+            Debug.Log($"Path created with {path.Count} steps");
             string pathStr = "Path: ";
             foreach (var node in path)
                 pathStr += $"({node.Item1},{node.Item2}) ";
-            // Debug.Log(pathStr);
+            Debug.Log(pathStr);
         }
         
         // Convert to queue
         Queue<(int, int)> result = new Queue<(int, int)>();
-        foreach (var node in path)
+        foreach (var node in path){
             result.Enqueue(node);
-            
+        }
+
         return result;
-    }
-
-
-    private Queue<(int, int)> ValidateAndRebuildPath((int, int) pathDestination, Dictionary<(int, int), (int, int)> fathers){
-        Queue<(int, int)> path = new Queue<(int, int)>();
-        List<(int, int)> pathNodes = new List<(int, int)>();
-        (int, int) node = pathDestination;
-        
-        // Building the path node by node (in reverse)
-        while(fathers.ContainsKey(node)){
-            pathNodes.Add(node);
-            node = fathers[node];
-        }
-        
-        // Reverse the path nodes
-        pathNodes.Reverse();
-        
-        // Validate each step in the path - there must be an edge between consecutive nodes
-        (int, int) prevNode = node; // This is our starting point, which wasn't added to pathNodes
-        bool pathIsValid = true;
-        
-        foreach (var currentNode in pathNodes)
-        {
-            // Check if there's an edge from prevNode to currentNode
-            if (!mapGraph.edges.ContainsKey(prevNode) || !mapGraph.edges[prevNode].Contains(currentNode))
-            {
-                // Debug.LogError($"Invalid path step! No edge between {prevNode} and {currentNode}");
-                pathIsValid = false;
-                break;
-            }
-            
-            prevNode = currentNode;
-        }
-        
-        if (!pathIsValid)
-        {
-            // Debug.LogError("Path validation failed! The path contains invalid edges.");
-            return new Queue<(int, int)>();
-        }
-        
-        // If path is valid, rebuild it as a queue
-        foreach (var step in pathNodes)
-        {
-            path.Enqueue(step);
-        }
-        
-        return path;
     }
 
     // --------------------------------------------------------------------------------------------
 
     public (int, int) GetPacmanPositionInGrid(){
         Vector3Int coords = pacmanCoord.GetPacmanCoords();
-        // Debug.Log($"Pacman Coords = ({-coords.y}, {coords.x})");
+        Debug.Log($"Pacman Coords = ({-coords.y}, {coords.x})");
         return (-coords.y, coords.x);
     }
 
@@ -384,7 +358,7 @@ public class Astar : MonoBehaviour
         int rows = mapMatrix.GetLength(0);
         int cols = mapMatrix.GetLength(1);
 
-        // Debug.Log("Map Matrix:");
+        Debug.Log("Map Matrix:");
         for (int x = 0; x < rows; x++)
         {
             string line = "";
@@ -392,10 +366,10 @@ public class Astar : MonoBehaviour
             {
                 line += mapMatrix[x, y] ? "1 " : "0 ";
             }
-            // Debug.Log(line);
+            Debug.Log(line);
         }
 
-        // Debug.Log("---------------------------------------");
+        Debug.Log("---------------------------------------");
     }
 
     // Draw the straight line path
@@ -422,17 +396,17 @@ public class Astar : MonoBehaviour
         {
             Vector3 worldPos = GridToWorldPosition(pathArray[i].Item2, pathArray[i].Item1);
             worldPositions.Add(worldPos);
-            // Debug.Log($"Added path point: Grid({pathArray[i].Item2}, {pathArray[i].Item1}) -> World({worldPos})");
+            Debug.Log($"Added path point: Grid({pathArray[i].Item2}, {pathArray[i].Item1}) -> World({worldPos})");
         }
 
-        // Debug.Log($"Total points in path visualization: {worldPositions.Count}");
+        Debug.Log($"Total points in path visualization: {worldPositions.Count}");
         
         // Set line renderer positions
         aStarLineRenderer.positionCount = worldPositions.Count;
         for (int i = 0; i < worldPositions.Count; i++)
         {
             aStarLineRenderer.SetPosition(i, worldPositions[i]);
-            // Debug.Log($"Set line position {i} to {worldPositions[i]}");
+            Debug.Log($"Set line position {i} to {worldPositions[i]}");
         }
     }
 }
