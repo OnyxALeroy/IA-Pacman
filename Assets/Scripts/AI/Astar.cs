@@ -68,7 +68,7 @@ public class Astar : MonoBehaviour
         GraphBuilder.DrawGraph(mapGraph, tilemap);
         setNewDestination(GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2, GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2);
         hasDestinationChanged = true;
-        Debug.Log($"Default destination set: {currentDestination}");
+        if (debugMode) { Debug.Log($"Default destination set: {currentDestination}"); }
     }
 
     // --------------------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ public class Astar : MonoBehaviour
     public void setNewDestination(int startX, int startY, int targetX, int targetY, bool doConsiderGhosts = false){
         currentStart = (startX, startY);
         currentDestination = (targetX, targetY);
-        Debug.Log($"Attempting to go to ({targetX}, {targetY}), with MapMatrix={mapMatrix[targetX, targetY]}");
+        if (debugMode) { Debug.Log($"Attempting to go to ({targetX}, {targetY}), with MapMatrix={mapMatrix[targetX, targetY]}"); }
         hasDestinationChanged = true;
         currentPath = FindShortestPath(doConsiderGhosts);
     }
@@ -86,7 +86,7 @@ public class Astar : MonoBehaviour
         {
             Vector3 world = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector3Int cell = tilemap.WorldToCell(world);
-            Debug.Log("Clicked tilemap cell: " + cell);
+            if (debugMode) { Debug.Log("Clicked tilemap cell: " + cell); }
 
             // Convert the clicked cell to our grid coordinates
             (int y, int x) = (cell.x, -cell.y);
@@ -94,8 +94,8 @@ public class Astar : MonoBehaviour
             // Check if this is a valid tile and set it as destination
             if (!mapMatrix[x, y])
             {
-                setNewDestination(GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2, x, y, doPathConsiderGhosts);
-                Debug.Log($"New destination set: {currentDestination}");
+                setNewDestination(GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2, x, y, doPathConsiderGhosts);            
+                if (debugMode) { Debug.Log($"New destination set: {currentDestination}"); }
             }
             else
             {
@@ -111,13 +111,13 @@ public class Astar : MonoBehaviour
             hasDestinationChanged = false;
 
             if (drawPaths){
-                Debug.Log($"Path calculation complete. Path count: {currentPath.Count}");
+                if (debugMode) { Debug.Log($"Path calculation complete. Path count: {currentPath.Count}"); }
                 string pathPoints = "Path points: ";
                 foreach (var point in currentPath)
                 {
                     pathPoints += $"({point.Item1},{point.Item2}) ";
                 }
-                Debug.Log(pathPoints);
+                if (debugMode) { Debug.Log(pathPoints); }
 
                 Vector3 startingPosition = pacman.transform.position;
                 Vector3 endingPosition = GridToWorldPosition(currentDestination.Item2, currentDestination.Item1);
@@ -126,12 +126,12 @@ public class Astar : MonoBehaviour
 
                 if (currentPath.Count > 0)
                 {
-                    Debug.Log($"Drawing path with {currentPath.Count} points");
+                    if (debugMode) { Debug.Log($"Drawing path with {currentPath.Count} points"); }
                     DrawAStarPath(new Queue<(int, int)>(currentPath));
                 }
                 else
                 {
-                    Debug.LogWarning("No path found to draw");
+                    if (debugMode) { Debug.LogWarning("No path found to draw"); }
                 }
             }
         }
@@ -156,7 +156,7 @@ public class Astar : MonoBehaviour
         // Check if destination is valid
         if (mapMatrix[currentDestination.Item1, currentDestination.Item2])
         {
-            Debug.LogError($"Destination {currentDestination} is not a valid tile!");
+            if (debugMode) { Debug.LogError($"Destination {currentDestination} is not a valid tile!"); }
             return new Queue<(int, int)>();
         }
 
@@ -238,17 +238,7 @@ public class Astar : MonoBehaviour
                 // Skip if already evaluated
                 if (closedSet.Contains(neighbor))
                     continue;
-                
-                // Validate this is a legitimate move (adjacent tiles only)
-                int dX = Math.Abs(current.Item1 - neighbor.Item1);
-                int dY = Math.Abs(current.Item2 - neighbor.Item2);
-                
-                if (dX > 1 || dY > 1 || (dX == 1 && dY == 1))
-                {
-                    Debug.LogWarning($"Skipping invalid edge: {current} -> {neighbor}, dX={dX}, dY={dY}");
-                    continue;
-                }
-                
+
                 // Calculate tentative gScore
                 int tentativeGScore = gScore.ContainsKey(current) ? gScore[current] + 1 : int.MaxValue;
                 
@@ -348,7 +338,7 @@ public class Astar : MonoBehaviour
 
     public (int, int) GetPacmanPositionInGrid(){
         Vector3Int coords = pacmanCoord.GetPacmanCoords();
-        Debug.Log($"Pacman Coords = ({-coords.y}, {coords.x})");
+        if (debugMode) { Debug.Log($"Pacman Coords = ({-coords.y}, {coords.x})"); }
         return (-coords.y, coords.x);
     }
 
@@ -396,17 +386,18 @@ public class Astar : MonoBehaviour
         {
             Vector3 worldPos = GridToWorldPosition(pathArray[i].Item2, pathArray[i].Item1);
             worldPositions.Add(worldPos);
-            Debug.Log($"Added path point: Grid({pathArray[i].Item2}, {pathArray[i].Item1}) -> World({worldPos})");
+            
+            if (debugMode) { Debug.Log($"Added path point: Grid({pathArray[i].Item2}, {pathArray[i].Item1}) -> World({worldPos})"); }
         }
 
-        Debug.Log($"Total points in path visualization: {worldPositions.Count}");
-        
+        if (debugMode) { Debug.Log($"Total points in path visualization: {worldPositions.Count}"); }
+
         // Set line renderer positions
         aStarLineRenderer.positionCount = worldPositions.Count;
         for (int i = 0; i < worldPositions.Count; i++)
         {
             aStarLineRenderer.SetPosition(i, worldPositions[i]);
-            Debug.Log($"Set line position {i} to {worldPositions[i]}");
+            if (debugMode) { Debug.Log($"Set line position {i} to {worldPositions[i]}"); }
         }
     }
 }

@@ -1555,7 +1555,9 @@ MonoBehaviour:
   - {fileID: 2099002810}
   - {fileID: 1166765804}
   - {fileID: 1667919384}
+  doPathConsiderGhosts: 1
   canUserInteract: 1
+  drawPaths: 0
   debugMode: 1
 --- !u!4 &525905809
 Transform:
@@ -4649,7 +4651,9 @@ MonoBehaviour:
   - {fileID: 2099002810}
   - {fileID: 1166765804}
   - {fileID: 1667919384}
+  doPathConsiderGhosts: 1
   canUserInteract: 0
+  drawPaths: 0
   debugMode: 0
 --- !u!114 &1335676425
 MonoBehaviour:
@@ -4919,8 +4923,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tileSize: 1
-  alpha_zero: 1
+  alpha_zero: 0
+  comportemental_ai: 1
   monteCarlo: {fileID: 1952629815}
+  comportementalAI: {fileID: 2090975202}
   spriteRenderer: {fileID: 1535157187}
   Start: {fileID: 1447035658}
 --- !u!50 &1535157186
@@ -6897,6 +6903,113 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2090975201
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2090975206}
+  - component: {fileID: 2090975205}
+  - component: {fileID: 2090975204}
+  - component: {fileID: 2090975203}
+  - component: {fileID: 2090975202}
+  m_Layer: 0
+  m_Name: ComportementalAI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2090975202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2090975201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb368f6acec2edf4eab4686f2c8a8af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapDebugger: {fileID: 1223086349}
+  pellets: {fileID: 1687293645}
+  astar: {fileID: 2090975204}
+  pathFollower: {fileID: 2090975203}
+  activateKillerBehaviour: 0
+  activateHungryBehaviour: 1
+--- !u!114 &2090975203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2090975201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625b9b57068105a479f1d0a3c225a39b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pacman: {fileID: 1535157184}
+  moveSpeed: 5
+  nextWaypointDistance: 0.1
+--- !u!114 &2090975204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2090975201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bed6baab4de909b4199d85569d09aa94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tilemap: {fileID: 1203097368}
+  mapDebugger: {fileID: 1223086349}
+  pacmanCoord: {fileID: 2090975205}
+  pacman: {fileID: 1535157184}
+  ghosts:
+  - {fileID: 77599893}
+  - {fileID: 2099002810}
+  - {fileID: 1166765804}
+  - {fileID: 1667919384}
+  doPathConsiderGhosts: 1
+  canUserInteract: 0
+  drawPaths: 0
+  debugMode: 0
+--- !u!114 &2090975205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2090975201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e5f96fd11348c243a419868d1eea9f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pacman: {fileID: 1535157188}
+  tilemap: {fileID: 1203097368}
+--- !u!4 &2090975206
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2090975201}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.5445463, y: -1.7428377, z: 0.0002598781}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2099002805 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4914627506025611239, guid: f0523a30376aa2340a61b3c894d8f479, type: 3}
@@ -6937,3 +7050,4 @@ SceneRoots:
   - {fileID: 1335676423}
   - {fileID: 1952629816}
   - {fileID: 525905809}
+  - {fileID: 2090975206}

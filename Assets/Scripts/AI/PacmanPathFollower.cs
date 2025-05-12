@@ -8,14 +8,14 @@ public class PacmanPathFollower : MonoBehaviour
     [SerializeField] private Pacman pacman;
     [SerializeField] private float moveSpeed = 3.0f;
     [SerializeField] private float nextWaypointDistance = 0.1f; // How close Pacman needs to get to a waypoint before moving to the next one
-    
+
     private Astar astar;
     private Queue<(int, int)> currentPath;
     private (int, int) currentWaypoint = (-1, -1);
     private bool isFollowingPath = false;
-    
-    void Start()
-    {
+    public bool IsFollowingPath => isFollowingPath;
+
+    private void Start(){
         astar = GetComponent<Astar>();
         
         if (pacman == null)
@@ -27,83 +27,40 @@ public class PacmanPathFollower : MonoBehaviour
             }
         }
     }
-    
-    void Update()
-    {
-        // If we don't have a path or we've finished following it, get a new path
-        if (!isFollowingPath)
-        {
-            // Only start following if there's a path available
-            if (astar.CurrentPath != null && astar.CurrentPath.Count > 0)
-            {
-                currentPath = new Queue<(int, int)>(astar.CurrentPath);
-                isFollowingPath = true;
-                GetNextWaypoint();
-            }
-        }
-        else
-        {
-            // Follow the current path
-            FollowPath();
-        }
+
+    private void Update(){
+        if (isFollowingPath) { Goto(); }
     }
     
-    void FollowPath()
-    {
-        if (currentWaypoint == (-1, -1))
-        {
-            if (currentPath.Count > 0)
-            {
-                GetNextWaypoint();
-            }
-            else
-            {
-                // We've reached the end of the path
-                isFollowingPath = false;
-                // Set destination to -1,-1 to trigger finding a new random destination
-                astar.currentDestination = (-1, -1);
-                return;
-            }
-        }
-        
+    private void Goto(){
         // Convert grid waypoint to world position
-        Vector3 targetPosition = GridToWorldPosition(currentWaypoint.Item1, currentWaypoint.Item2);
-        
+        Vector3 targetPosition = GridToWorldPosition(currentWaypoint.Item2, currentWaypoint.Item1);
+        Debug.LogWarning($"targetPosition = ({targetPosition.x}, {targetPosition.y})");
+
         // Calculate direction and move
         Vector3 currentPosition = pacman.transform.position;
         Vector3 direction = (targetPosition - currentPosition).normalized;
-        
+
         // Move pacman toward the waypoint
         pacman.transform.position += direction * moveSpeed * Time.deltaTime;
-        
+
         // Determine pacman's rotation based on direction
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        pacman.transform.rotation = Quaternion.Euler(0, 0, angle);
-        
+        pacman.transform.rotation = Quaternion.Euler(0, 0, angle - 90);
+
         // Check if we've reached the waypoint
         float distanceToWaypoint = Vector3.Distance(currentPosition, targetPosition);
-        if (distanceToWaypoint < nextWaypointDistance)
-        {
-            GetNextWaypoint();
+        if (distanceToWaypoint < nextWaypointDistance){
+            SetNextWaypoint((-1, -1));
         }
     }
-    
-    void GetNextWaypoint()
-    {
-        if (currentPath.Count > 0)
-        {
-            currentWaypoint = currentPath.Dequeue();
-        }
-        else
-        {
-            currentWaypoint = (-1, -1);
-            isFollowingPath = false;
-        }
+
+    public void SetNextWaypoint((int, int) waypoint){
+        currentWaypoint = waypoint;
+        isFollowingPath = !(waypoint == (-1, -1));
     }
     
-    Vector3 GridToWorldPosition(int gridX, int gridY)
-    {
-        // Reference the A* script's conversion method directly to ensure consistency
+    Vector3 GridToWorldPosition(int gridX, int gridY){
         return astar.GridToWorldPosition(gridX, gridY);
     }
 }

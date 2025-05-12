@@ -2,18 +2,16 @@ using UnityEngine;
 using System.Collections;
 
 public class Pacman : MonoBehaviour {
-  [SerializeField]
-  float tileSize = 1.0f;
-  [SerializeField]
-  bool alpha_zero = true;
-  [SerializeField]
-  MonteCarlo monteCarlo;
+  [SerializeField] float tileSize = 1.0f;
+  [SerializeField] bool alpha_zero = true;
+  [SerializeField] bool comportemental_ai = false;
+  [SerializeField] MonteCarlo monteCarlo;
+  [SerializeField] ComportementalAI comportementalAI;
   private bool isMoving = false;
   float move_delay = 0.2f;
   float tile_size = 1.0f;
 
-  [SerializeField]
-  private SpriteRenderer spriteRenderer;
+  [SerializeField] private SpriteRenderer spriteRenderer;
   private CircleCollider2D circleCollider;
   public Movement movement { get; private set; }
 
@@ -36,6 +34,8 @@ public class Pacman : MonoBehaviour {
       if (direction != Vector2.zero) {
         StartCoroutine(MoveOneTile(direction));
       }
+    } else if (comportemental_ai) {
+      comportementalAI.HandleUpdate();
     } else {
       if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) {
         this.movement.SetDirection(Vector2.up);
