@@ -4,8 +4,9 @@ using UnityEngine;
 public class _Pellet {
     public Vector3 position;
     public bool active;
-    public int points;
+    public int points = 10;
     public bool is_power_pellet;
+	public Vector2Int coord;
 
     public _Pellet(Vector3 position, bool active, bool is_power_pellet) {
         this.position = position;

@@ -22,9 +22,10 @@ public class Evaluator : MonoBehaviour
         // We want Pacman to chase food, rather than wander.
 
         int distance = int.MaxValue;
-        foreach (Vector2Int pelletCoord in gameManager.pelletCoords.Keys){
-            if (gameManager.pelletCoords[pelletCoord].gameObject.activeSelf){
-                astar.setNewDestination((int)-gameState.pacman_position.y, (int)gameState.pacman_position.x, pelletCoord.x, pelletCoord.y);
+        foreach (Vector2Int pelletCoord in gameState.pellets.Keys){
+			// Debug.Log($"{pelletCoord.x }  {pelletCoord.y}");
+            if (gameState.pellets[pelletCoord].active){
+                astar.setNewDestination((int)-gameState.pacman_position.y, (int)gameState.pacman_position.x, -pelletCoord.y, pelletCoord.x);
                 if (astar.CurrentPath.Count < distance){ distance = astar.CurrentPath.Count; }
             }
         }
@@ -60,7 +61,8 @@ public class Evaluator : MonoBehaviour
 
     public float Evaluate(GameState gameState){
 		// Debug.Log($"{PelletRemainingEvaluation(gameState)}, {DistanceToNearestPelletEvaluation(gameState)}, {GhostDangerEvaluation(gameState)}, {ScoreEvaluation(gameState)}");
-        return PelletRemainingEvaluation(gameState) + DistanceToNearestPelletEvaluation(gameState)
+        return PelletRemainingEvaluation(gameState) + 
+			// DistanceToNearestPelletEvaluation(gameState)
             + GhostDangerEvaluation(gameState) + ScoreEvaluation(gameState);
     }
 }

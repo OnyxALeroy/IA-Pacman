@@ -12,7 +12,7 @@ public class MonteCarlo : MonoBehaviour {
 	[SerializeField] GridLayout grid_map;
 
     private const int iterations_nb = 1;
-    private const int simulation_depth = 10;
+    private const int simulation_depth = 5;
     MonteCarloNode root;
     private MonteCarloNode current_node;
 
@@ -110,8 +110,8 @@ public class MonteCarlo : MonoBehaviour {
             move_ghosts(game_state);
             check_pellet_position(game_state);
             reward += evaluator.Evaluate(game_state);
-			Debug.Log($"the evaluator gives: {evaluator.Evaluate(game_state)}");
-			Debug.Log($"the reward is: {reward}");
+			// Debug.Log($"the evaluator gives: {evaluator.Evaluate(game_state)}");
+			// Debug.Log($"the reward is: {reward}");
         }
         return reward;
     }
@@ -120,25 +120,29 @@ public class MonteCarlo : MonoBehaviour {
         Dictionary<Vector2Int, _Pellet> pellets = game_state.pellets;
 		// TODO: gérér ça car le timer pas actif pour l'ins
 		string res = "";
-		Debug.Log(res);
+		// Debug.Log(res);
 		Vector2Int pacman_position_int_2d = new Vector2Int(pacman_position_int.x, pacman_position_int.y);
 		res += $"pacman position int: {pacman_position_int_2d}";
 
 		foreach (var pellet in pellets.Keys){
 			res += $"({pellet})";
 		}
-		Debug.Log(res);
+		// Debug.Log(res);
 
 
         if (pellets.ContainsKey(pacman_position_int_2d) && pellets[pacman_position_int_2d].active) {
-			Debug.Log("ZZZZZZZZZZZZZZZZZZ");
             pellets[pacman_position_int_2d].eat();
-            game_state.score += pellets[pacman_position_int_2d].points;
+			int score;
 			if (pellets[pacman_position_int_2d].is_power_pellet){
 				game_state.is_frightened = true;
+				score = 5 * pellets[pacman_position_int_2d].points;
 				// TODO: à commencer à tiquer le timer
 				// et à remettre l'état à false après un certain temps
+			}else{
+				score = pellets[pacman_position_int_2d].points;
 			}
+            game_state.score += pellets[pacman_position_int_2d].points;
+			// Debug.Log("ZZZZZZZZZZZZZZZZZZ" + game_state.score);
         }
     }
     private void move_ghosts(GameState game_state) {
@@ -212,7 +216,9 @@ public class MonteCarlo : MonoBehaviour {
         Dictionary<Vector2Int, _Pellet> _pellets = new Dictionary<Vector2Int, _Pellet>();
         foreach (Transform pellet in pellets) {
             Vector3Int key = Vector3Int.RoundToInt(pellet.position);
-			Vector2Int key_int = new Vector2Int(key.x, key.y);
+			// Vector2Int key_int = new Vector2Int(key.x, key.y);
+			Vector3Int key_coord = grid_map.WorldToCell(pellet.position);
+			Vector2Int key_coord_2d = new Vector2Int(key_coord.x, key_coord.y);
             bool is_power_pellet;
             // Debug.Log(pellet.GetComponent<Pellet>());
             if (pellet.GetComponent<Pellet>() is PowerPellet) {
@@ -221,7 +227,8 @@ public class MonteCarlo : MonoBehaviour {
                 is_power_pellet = false;
             }
             // _pellets[key] = new _Pellet(pellet.position, pellet.gameObject.activeInHierarchy, is_power_pellet);
-            _pellets[key_int] = new _Pellet(pellet.position, pellet.gameObject.activeInHierarchy, is_power_pellet);
+            _pellets[key_coord_2d] = new _Pellet(pellet.position, pellet.gameObject.activeInHierarchy, is_power_pellet);
+			// Debug.Log($"{key_coord_2d.x }  {key_coord_2d.y}");
         }
 
         GameState game_state = new GameState(pacmanPosition, pacman.movement.obstacleLayer, _ghosts, _pellets, 0);
