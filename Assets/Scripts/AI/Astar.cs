@@ -46,8 +46,8 @@ public class Astar : MonoBehaviour
         aStarLineObject = new GameObject("AStarPath");
         aStarLineRenderer = aStarLineObject.AddComponent<LineRenderer>();
         aStarLineRenderer.positionCount = 0;
-        aStarLineRenderer.startWidth = 0.05f;
-        aStarLineRenderer.endWidth = 0.05f;
+        aStarLineRenderer.startWidth = 0.5f;
+        aStarLineRenderer.endWidth = 0.5f;
         aStarLineRenderer.material = new Material(Shader.Find("Sprites/Default"));
         aStarLineRenderer.startColor = Color.green;
         aStarLineRenderer.endColor = Color.green;
@@ -61,6 +61,7 @@ public class Astar : MonoBehaviour
         if (debugMode) { PrintMatrixInConsole(); }
 
         mapGraph = GraphBuilder.BuildGraph(mapMatrix, debugMode);
+        GraphBuilder.DrawGraph(mapGraph, tilemap);
         setNewDestination(GetPacmanPositionInGrid().Item1, GetPacmanPositionInGrid().Item2);
         hasDestinationChanged = true;
         Debug.Log($"Default destination set: {currentDestination}");
@@ -88,8 +89,7 @@ public class Astar : MonoBehaviour
             // Check if this is a valid tile and set it as destination
             if (!mapMatrix[x, y])
             {
-                currentDestination = (x, y);
-                hasDestinationChanged = true;
+                setNewDestination(x, y);
                 Debug.Log($"New destination set: {currentDestination}");
             }
             else
@@ -146,43 +146,8 @@ public class Astar : MonoBehaviour
         return Math.Abs(node.Item1 - goal.Item1) + Math.Abs(node.Item2 - goal.Item2);
     }
 
-    private (int, int) GetMinimizingNode(List<(int, int)> nodes, Dictionary<(int, int), int> costsFromStart, (int, int) goal){
-        if (nodes.Count == 0) { Debug.LogError("Cannot find minimizing node from empty list"); return (-1, -1); }
-
-        (int, int) minimizingNode = nodes[0]; // Default to first node
-        int minimalCost = costsFromStart[minimizingNode] + CalculateHeuristic(minimizingNode, goal);
-
-        foreach((int, int) node in nodes){
-            int cost = costsFromStart[node] + CalculateHeuristic(node, goal);
-
-            if (cost < minimalCost){
-                minimalCost = cost;
-                minimizingNode = node;
-            }
-        }
-
-        return minimizingNode;
-    }
-
-    private Queue<(int, int)> RebuildPathFromDestination((int, int) pathDestination, Dictionary<(int, int), (int, int)> fathers){
-        Queue<(int, int)> path = new Queue<(int, int)>();
-        (int, int) node = pathDestination;
-        
-        // Building the path node by node (in reverse)
-        while(fathers.ContainsKey(node)){
-            path.Enqueue(node);
-            node = fathers[node];
-        }
-
-        // Reverting the path (so that it's Start -> Finish, instead of Finish -> Start)
-        Stack<(int, int)> stack = new Stack<(int, int)>();
-        while (path.Count > 0) { stack.Push(path.Dequeue()); }
-        while (stack.Count > 0) { path.Enqueue(stack.Pop()); }
-
-        return path;
-    }
-
-    public Queue<(int, int)> FindShortestPath(){
+    public Queue<(int, int)> FindShortestPath()
+    {
         (int, int) initialPosition = GetPacmanPositionInGrid();
 
         // Check if destination is valid
@@ -192,60 +157,99 @@ public class Astar : MonoBehaviour
             return new Queue<(int, int)>();
         }
 
-        List<(int, int)> toExplore = new List<(int, int)>{ initialPosition }; // Nodes to consider
-        List<(int, int)> explored = new List<(int, int)>(); // Considered nodes
-        Dictionary<(int, int), (int, int)> fathers = new Dictionary<(int, int), (int, int)>();
-
-        // Initialize costs from start point
-        Dictionary<(int, int), int> costsFromStart = new Dictionary<(int, int), int>{ {initialPosition, 0} };
+        // Check if the initial position and destination are in the graph
+        if (!mapGraph.edges.ContainsKey(initialPosition))
+        {
+            Debug.LogError($"Initial position {initialPosition} is not in the graph!");
+            return new Queue<(int, int)>();
+        }
         
-        // A* algorithm
-        while(toExplore.Count > 0){
-            // Safeguard check
-            if (toExplore.Count == 0) break;
+        if (!mapGraph.edges.ContainsKey(currentDestination))
+        {
+            Debug.LogError($"Destination {currentDestination} is not in the graph!");
+            return new Queue<(int, int)>();
+        }
+
+        // Priority queue would be better but we'll use a list
+        List<(int, int)> openSet = new List<(int, int)>{ initialPosition };
+        HashSet<(int, int)> closedSet = new HashSet<(int, int)>();
+        
+        // Track the path with a previous node dictionary
+        Dictionary<(int, int), (int, int)> cameFrom = new Dictionary<(int, int), (int, int)>();
+        
+        // Cost from start to each node
+        Dictionary<(int, int), int> gScore = new Dictionary<(int, int), int>();
+        gScore[initialPosition] = 0;
+        
+        // Estimated total cost from start to goal through each node
+        Dictionary<(int, int), int> fScore = new Dictionary<(int, int), int>();
+        fScore[initialPosition] = CalculateHeuristic(initialPosition, currentDestination);
+        
+        while (openSet.Count > 0)
+        {
+            // Find node in openSet with lowest fScore
+            (int, int) current = GetLowestFScoreNode(openSet, fScore);
             
-            (int, int) currentNode = GetMinimizingNode(toExplore, costsFromStart, currentDestination);
+            if (debugMode)
+                Debug.Log($"Evaluating node: ({current.Item1}, {current.Item2}) with fScore: {fScore[current]}");
             
-            if (currentNode.Equals(currentDestination)){
-                return RebuildPathFromDestination(currentNode, fathers);
+            // Check if we've reached the destination
+            if (current.Equals(currentDestination))
+            {
+                if (debugMode)
+                    Debug.Log("Found path to destination!");
+                return ReconstructPath(cameFrom, current);
             }
             
-            // Explore neighbors
-            toExplore.Remove(currentNode);
-            explored.Add(currentNode);
+            openSet.Remove(current);
+            closedSet.Add(current);
             
-            // Check if the node exists in the graph before getting neighbors
-            if (!mapGraph.edges.ContainsKey(currentNode))
+            // Make sure this node exists in the graph
+            if (!mapGraph.edges.ContainsKey(current))
             {
-                Debug.LogError($"Node {currentNode} not found in graph!");
+                Debug.LogError($"Node {current} not found in graph during A* search!");
                 continue;
             }
             
-            foreach((int, int) neighbor in mapGraph.Neighbors(currentNode)){
-                int tentativeCost = costsFromStart[currentNode] + 1; // Cost to move is 1
+            // Check each neighbor
+            foreach (var neighbor in mapGraph.edges[current])
+            {
+                // Skip if already evaluated
+                if (closedSet.Contains(neighbor))
+                    continue;
                 
-                // Initialize cost if not yet set
-                if (!costsFromStart.ContainsKey(neighbor))
+                // Validate this is a legitimate move (adjacent tiles only)
+                int dX = Math.Abs(current.Item1 - neighbor.Item1);
+                int dY = Math.Abs(current.Item2 - neighbor.Item2);
+                
+                if (dX > 1 || dY > 1 || (dX == 1 && dY == 1))
                 {
-                    costsFromStart[neighbor] = int.MaxValue;
+                    Debug.LogWarning($"Skipping invalid edge: {current} -> {neighbor}, dX={dX}, dY={dY}");
+                    continue;
                 }
                 
-                if (tentativeCost < costsFromStart[neighbor])
-                {
-                    // Found a better path
-                    fathers[neighbor] = currentNode;
-                    costsFromStart[neighbor] = tentativeCost;
-                    
-                    if (explored.Contains(neighbor))
-                    { 
-                        explored.Remove(neighbor); 
-                    }
-                    
-                    if (!toExplore.Contains(neighbor))
-                    { 
-                        toExplore.Add(neighbor); 
-                    }
-                }
+                // Calculate tentative gScore
+                int tentativeGScore = gScore.ContainsKey(current) ? gScore[current] + 1 : int.MaxValue;
+                
+                // Initialize neighbor scores if needed
+                if (!gScore.ContainsKey(neighbor))
+                    gScore[neighbor] = int.MaxValue;
+                
+                if (!fScore.ContainsKey(neighbor))
+                    fScore[neighbor] = int.MaxValue;
+                
+                // Skip if this path is not better
+                if (tentativeGScore >= gScore[neighbor])
+                    continue;
+                
+                // This path is better, record it
+                cameFrom[neighbor] = current;
+                gScore[neighbor] = tentativeGScore;
+                fScore[neighbor] = gScore[neighbor] + CalculateHeuristic(neighbor, currentDestination);
+                
+                // Add to open set if not already there
+                if (!openSet.Contains(neighbor))
+                    openSet.Add(neighbor);
             }
         }
         
@@ -253,11 +257,124 @@ public class Astar : MonoBehaviour
         return new Queue<(int, int)>();
     }
 
+    // Find node with lowest fScore
+    private (int, int) GetLowestFScoreNode(List<(int, int)> nodes, Dictionary<(int, int), int> fScore)
+    {
+        if (nodes.Count == 0)
+            return (-1, -1);
+            
+        (int, int) lowestNode = nodes[0];
+        int lowestScore = fScore.ContainsKey(lowestNode) ? fScore[lowestNode] : int.MaxValue;
+        
+        foreach (var node in nodes)
+        {
+            int score = fScore.ContainsKey(node) ? fScore[node] : int.MaxValue;
+            if (score < lowestScore)
+            {
+                lowestScore = score;
+                lowestNode = node;
+            }
+        }
+        
+        return lowestNode;
+    }
+
+    // Reconstruct path from destination back to start
+    private Queue<(int, int)> ReconstructPath(Dictionary<(int, int), (int, int)> cameFrom, (int, int) current)
+    {
+        // Build path in reverse
+        List<(int, int)> path = new List<(int, int)>();
+        
+        while (cameFrom.ContainsKey(current))
+        {
+            // Verify this is a valid edge in our graph
+            (int, int) previous = cameFrom[current];
+            
+            // Double check that this edge exists in the graph
+            if (!mapGraph.edges.ContainsKey(previous) || !mapGraph.edges[previous].Contains(current))
+            {
+                Debug.LogError($"Invalid path step! No edge between {previous} and {current}");
+                // We could break here, but let's continue to see the full problematic path
+            }
+            
+            // Add node to path
+            path.Add(current);
+            current = previous;
+        }
+        
+        // Reverse to get start-to-destination order
+        path.Reverse();
+        
+        if (debugMode)
+        {
+            Debug.Log($"Path created with {path.Count} steps");
+            string pathStr = "Path: ";
+            foreach (var node in path)
+                pathStr += $"({node.Item1},{node.Item2}) ";
+            Debug.Log(pathStr);
+        }
+        
+        // Convert to queue
+        Queue<(int, int)> result = new Queue<(int, int)>();
+        foreach (var node in path)
+            result.Enqueue(node);
+            
+        return result;
+    }
+
+
+    private Queue<(int, int)> ValidateAndRebuildPath((int, int) pathDestination, Dictionary<(int, int), (int, int)> fathers){
+        Queue<(int, int)> path = new Queue<(int, int)>();
+        List<(int, int)> pathNodes = new List<(int, int)>();
+        (int, int) node = pathDestination;
+        
+        // Building the path node by node (in reverse)
+        while(fathers.ContainsKey(node)){
+            pathNodes.Add(node);
+            node = fathers[node];
+        }
+        
+        // Reverse the path nodes
+        pathNodes.Reverse();
+        
+        // Validate each step in the path - there must be an edge between consecutive nodes
+        (int, int) prevNode = node; // This is our starting point, which wasn't added to pathNodes
+        bool pathIsValid = true;
+        
+        foreach (var currentNode in pathNodes)
+        {
+            // Check if there's an edge from prevNode to currentNode
+            if (!mapGraph.edges.ContainsKey(prevNode) || !mapGraph.edges[prevNode].Contains(currentNode))
+            {
+                Debug.LogError($"Invalid path step! No edge between {prevNode} and {currentNode}");
+                pathIsValid = false;
+                break;
+            }
+            
+            prevNode = currentNode;
+        }
+        
+        if (!pathIsValid)
+        {
+            Debug.LogError("Path validation failed! The path contains invalid edges.");
+            return new Queue<(int, int)>();
+        }
+        
+        // If path is valid, rebuild it as a queue
+        foreach (var step in pathNodes)
+        {
+            path.Enqueue(step);
+        }
+        
+        return path;
+    }
+
     // --------------------------------------------------------------------------------------------
 
     public (int, int) GetPacmanPositionInGrid(){
         Vector3Int coords = pacmanCoord.GetPacmanCoords();
-        return (coords.x, -coords.y);
+        Debug.Log($"Pacman Coords = ({-coords.y}, {coords.x})");
+        return (-coords.y, coords.x);
     }
 
     // --------------------------------------------------------------------------------------------
@@ -295,20 +412,16 @@ public class Astar : MonoBehaviour
     {
         if (aStarLineRenderer == null) { Debug.LogError("aStarLineRenderer is null"); return; }
         if (path.Count == 0) { Debug.LogWarning("Path is empty, nothing to draw"); return; }
-        
+
         List<Vector3> worldPositions = new List<Vector3>();
         
-        // Add Pacman's current position as start
-        Vector3 startPos = pacman.transform.position;
-        worldPositions.Add(startPos);
-        Debug.Log($"Starting path draw at: {startPos}");
-        
-        // Add all path points
-        foreach (var step in path)
+        // Convert path points to world positions
+        var pathArray = path.ToArray(); // Convert to array to preserve order
+        for (int i = 0; i < pathArray.Length; i++)
         {
-            Vector3 worldPos = GridToWorldPosition(step.Item1, step.Item2);
+            Vector3 worldPos = GridToWorldPosition(pathArray[i].Item2, pathArray[i].Item1);
             worldPositions.Add(worldPos);
-            Debug.Log($"Added path point: Grid({step.Item1},{step.Item2}) -> World({worldPos})");
+            Debug.Log($"Added path point: Grid({pathArray[i].Item2}, {pathArray[i].Item1}) -> World({worldPos})");
         }
 
         Debug.Log($"Total points in path visualization: {worldPositions.Count}");

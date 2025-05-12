@@ -10,7 +10,6 @@ public class Evaluator : MonoBehaviour
     [SerializeField] float gamma = 1.0f;
     [SerializeField] float delta = 1.0f;
     [SerializeField] float epsilon = 1.0f;
-    [SerializeField] float zeta = 1.0f;
 
     // Components ----------------------------------------------------------------------------------------------------------
 
@@ -24,22 +23,25 @@ public class Evaluator : MonoBehaviour
 
         int distance = int.MaxValue;
         foreach (Vector2Int pelletCoord in gameManager.pelletCoords.Keys){
-            astar.setNewDestination(pelletCoord.x, pelletCoord.y);
-            if (astar.CurrentPath.Count < distance){ distance = astar.CurrentPath.Count; }
+            if (gameManager.pelletCoords[pelletCoord].gameObject.activeSelf){
+                astar.setNewDestination(pelletCoord.x, pelletCoord.y);
+                if (astar.CurrentPath.Count < distance){ distance = astar.CurrentPath.Count; }
+            }
         }
         if (distance == int.MaxValue) { distance = 1; }
 
         return -beta * 1 / distance;
     }
+
     private float GhostDangerEvaluation(GameState gameState){
         Vector3 pacmanPosition = gameState.pacman_position;
         float score = 0.0f;
 
         foreach (_Ghost g in gameState.ghosts){
             if (g.activated){
-                float distance = Vector3.Distance(pacmanPosition, g.position);
-                // TODO: change !g.activated but g.isScared or equivalent
-                if (!g.activated){ 
+                astar.setNewDestination((int)-g.coord.y, (int)g.coord.x);
+                int distance = astar.CurrentPath.Count;
+                if (g.is_ghost_feared){ 
                     score += delta / (1 + distance);
                 } else {
                     score -= gamma / (1 + distance);
@@ -49,18 +51,15 @@ public class Evaluator : MonoBehaviour
 
         return score;
     }
-    private float CapsuleRemainingEvaluation(GameState gameState){ 
-        // Calculate * epsilon * nb_pacGums
-        return - epsilon * 0.0f;
-    }
+
     private float ScoreEvaluation(GameState gameState){
-        return zeta * gameState.score;
+        return epsilon * gameState.score;
     }
 
     // Evaluation function -------------------------------------------------------------------------------------------------
 
     public float Evaluate(GameState gameState){
-        return PelletRemainingEvaluation(gameState) + DistanceToNearestPelletEvaluation(gameState) + GhostDangerEvaluation(gameState)
-            + CapsuleRemainingEvaluation(gameState) + ScoreEvaluation(gameState);
+        return PelletRemainingEvaluation(gameState) + DistanceToNearestPelletEvaluation(gameState)
+            + GhostDangerEvaluation(gameState) + ScoreEvaluation(gameState);
     }
 }

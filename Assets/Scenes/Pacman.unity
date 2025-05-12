@@ -1550,8 +1550,8 @@ MonoBehaviour:
   mapDebugger: {fileID: 1223086349}
   pacmanCoord: {fileID: 525905807}
   pacman: {fileID: 1535157184}
-  canUserInteract: 1
-  debugMode: 1
+  canUserInteract: 0
+  debugMode: 0
 --- !u!4 &525905809
 Transform:
   m_ObjectHideFlags: 0
@@ -4461,7 +4461,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tilemap: {fileID: 1203097368}
   debugCellPosition: {x: 0, y: 0, z: 0}
-  positionInGrid: {x: 0, y: 0, z: 0}
+  positionInGrid: {x: -13.5, y: 6.5, z: 0}
 --- !u!4 &1223086350
 Transform:
   m_ObjectHideFlags: 0
@@ -4606,7 +4606,6 @@ MonoBehaviour:
   gamma: 1
   delta: 1
   epsilon: 1
-  zeta: 1
 --- !u!4 &1335676423
 Transform:
   m_ObjectHideFlags: 0
