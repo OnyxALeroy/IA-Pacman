@@ -26,6 +26,7 @@ public class Astar : MonoBehaviour
     // Grid-relative attributes
     private bool[,] mapMatrix;
     private Graph<(int, int)> mapGraph;
+    public bool[,] MapMatrix => mapMatrix;
 
     // Debug Components (for drawing the paths)
     private GameObject straightLineObject;
@@ -363,7 +364,7 @@ public class Astar : MonoBehaviour
     }
 
     // Draw the straight line path
-    void DrawStraightLine(Vector3 start, Vector3 end)
+    private void DrawStraightLine(Vector3 start, Vector3 end)
     {
         if (straightLineRenderer == null) return;
         
@@ -373,7 +374,7 @@ public class Astar : MonoBehaviour
     }
 
     // Draw the A* path
-    void DrawAStarPath(Queue<(int, int)> path)
+    private void DrawAStarPath(Queue<(int, int)> path)
     {
         if (aStarLineRenderer == null) { Debug.LogError("aStarLineRenderer is null"); return; }
         if (path.Count == 0) { Debug.LogWarning("Path is empty, nothing to draw"); return; }

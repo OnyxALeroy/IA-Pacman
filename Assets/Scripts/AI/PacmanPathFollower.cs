@@ -33,18 +33,11 @@ public class PacmanPathFollower : MonoBehaviour
     }
     
     private void Goto(){
-        // Convert grid waypoint to world position
         Vector3 targetPosition = GridToWorldPosition(currentWaypoint.Item2, currentWaypoint.Item1);
-        Debug.LogWarning($"targetPosition = ({targetPosition.x}, {targetPosition.y})");
-
-        // Calculate direction and move
         Vector3 currentPosition = pacman.transform.position;
         Vector3 direction = (targetPosition - currentPosition).normalized;
-
-        // Move pacman toward the waypoint
         pacman.transform.position += direction * moveSpeed * Time.deltaTime;
 
-        // Determine pacman's rotation based on direction
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         pacman.transform.rotation = Quaternion.Euler(0, 0, angle - 90);
 

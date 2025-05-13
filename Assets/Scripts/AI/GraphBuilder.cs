@@ -28,6 +28,36 @@ public class Graph<Location>
         g.edges = newEdges;
         return g;
     }
+
+    // ---------------------------------------------------------------------------------------------------------------------
+
+    public List<Location> GetAllReachableLocations(Location startingPoint, int maxPathLength){
+        HashSet<Location> reachable = new HashSet<Location>();
+        Queue<(Location node, int depth)> frontier = new Queue<(Location, int)>();
+
+        frontier.Enqueue((startingPoint, 0));
+        reachable.Add(startingPoint);
+
+        while (frontier.Count > 0)
+        {
+            var (current, depth) = frontier.Dequeue();
+
+            if (depth >= maxPathLength)
+                continue;
+
+            foreach (var neighbor in Neighbors(current))
+            {
+                if (!reachable.Contains(neighbor))
+                {
+                    reachable.Add(neighbor);
+                    frontier.Enqueue((neighbor, depth + 1));
+                }
+            }
+        }
+
+        reachable.Remove(startingPoint);
+        return new List<Location>(reachable);
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -122,8 +152,7 @@ public class GraphBuilder{
         return g;
     }
 
-    public static void DrawGraph(Graph<(int, int)> graph, Tilemap tilemap)
-    {
+    public static void DrawGraph(Graph<(int, int)> graph, Tilemap tilemap){
         // Remove any existing visualization
         GameObject existingViz = GameObject.Find("GraphVisualization");
         if (existingViz != null)

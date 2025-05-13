@@ -1557,7 +1557,7 @@ MonoBehaviour:
   - {fileID: 1667919384}
   doPathConsiderGhosts: 1
   canUserInteract: 1
-  drawPaths: 0
+  drawPaths: 1
   debugMode: 1
 --- !u!4 &525905809
 Transform:
@@ -6694,7 +6694,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -12, y: 195}
+  m_AnchoredPosition: {x: -28, y: 407}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1781295242
@@ -6939,8 +6939,12 @@ MonoBehaviour:
   pellets: {fileID: 1687293645}
   astar: {fileID: 2090975204}
   pathFollower: {fileID: 2090975203}
-  activateKillerBehaviour: 0
-  activateHungryBehaviour: 1
+  ghosts:
+  - {fileID: 77599893}
+  - {fileID: 2099002810}
+  - {fileID: 1166765804}
+  - {fileID: 1667919384}
+  dangerRadius: 6
 --- !u!114 &2090975203
 MonoBehaviour:
   m_ObjectHideFlags: 0

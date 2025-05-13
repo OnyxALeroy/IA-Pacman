@@ -8,8 +8,8 @@ public class ComportementalAI : MonoBehaviour
     [SerializeField] Transform pellets;
     [SerializeField] Astar astar;
     [SerializeField] PacmanPathFollower pathFollower;
-    [SerializeField] bool activateKillerBehaviour = false;
-    [SerializeField] bool activateHungryBehaviour = false;
+    [SerializeField] List<Ghost> ghosts = new List<Ghost>();
+    [SerializeField] int dangerRadius = 3;
 
     private Dictionary<Vector2Int, Transform> pelletCoords;
 
@@ -29,7 +29,16 @@ public class ComportementalAI : MonoBehaviour
     public void HandleUpdate(){
         if (!pathFollower.IsFollowingPath){
             (int, int) target = (-1, -1);
-            if (activateHungryBehaviour){
+
+            Graph<(int, int)> graph = GraphBuilder.BuildGraph(astar.MapMatrix);
+            List<(int, int)> reachableTiles = graph.GetAllReachableLocations(astar.GetPacmanPositionInGrid(), dangerRadius);
+            if (CheckIfGhostNearby(reachableTiles)){
+                (int, int) safePoint = GetSafestTile(reachableTiles);
+                astar.setNewDestination(astar.GetPacmanPositionInGrid().Item1, astar.GetPacmanPositionInGrid().Item2, safePoint.Item1, safePoint.Item2, false);
+                if (astar.CurrentPath.Count > 0){
+                    target = astar.CurrentPath.Peek();
+                }
+            } else {
                 Vector2Int nearestPelletCoords = new Vector2Int(-1, -1);
                 (int, int) newTarget = (-1, -1);
                 int distance = int.MaxValue;
@@ -45,12 +54,59 @@ public class ComportementalAI : MonoBehaviour
                     }
                 }
                 target = newTarget;
-            } else if(activateKillerBehaviour){
-                // TODO: Goto the nearest Pac-gum, then haunt ghosts
             }
-
-            Debug.Log($"Target is ({target.Item1}, {target.Item2})");
             pathFollower.SetNextWaypoint(target);
         }
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------------------------------------
+
+    private bool CheckIfGhostNearby(List<(int, int)> tiles){
+        bool res = false;
+        foreach (Ghost ghost in ghosts){
+            Vector3Int ghostCoord = mapDebugger.tilemap.WorldToCell(ghost.transform.position);
+            if (tiles.Contains((-ghostCoord.y, ghostCoord.x))){
+                res = true;
+                break;
+            }
+        }
+
+        return res;
+    }
+
+    private (int, int) GetSafestTile(List<(int, int)> reachableTiles){
+        (int, int) safestTile = (-1, -1);
+        int maxTotalDistance = int.MinValue;
+
+        foreach ((int x, int y) in reachableTiles)
+        {
+            int totalDistance = 0;
+
+            foreach (Ghost ghost in ghosts)
+            {
+                Vector3Int ghostCoord = mapDebugger.tilemap.WorldToCell(ghost.transform.position);
+                Debug.LogError($"Ghost coords: ({-ghostCoord.y}, {ghostCoord.x})");
+                Debug.LogError($"Tile considered: ({x}, {y})");
+                astar.setNewDestination(x, y, -ghostCoord.y, ghostCoord.x, false);
+                Debug.LogWarning($"Ghost path count: {astar.CurrentPath.Count}");
+
+                if (astar.CurrentPath.Count == 0)
+                {
+                    continue;
+                }
+
+                totalDistance += astar.CurrentPath.Count;
+            }
+
+            if (totalDistance > maxTotalDistance)
+            {
+                maxTotalDistance = totalDistance;
+                safestTile = (x, y);
+            }
+        }
+
+        Debug.LogWarning($"Safest tile: ({safestTile.Item1}, {safestTile.Item2})");
+
+        return safestTile;
     }
 }
